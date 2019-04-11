@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import RectEditor from './RectEditor';
-import SingleLineChild from './SingleLineChild';
+import ShapeEditor from './ShapeEditor';
+import SingleLineShape from './SingleLineShape';
 import formImage from './blank.jpg';
 
 let iterator = 0;
@@ -35,10 +35,10 @@ class App extends Component {
         <button onClick={() => changeScale(1 / Math.sqrt(2))}>-</button>
         <button onClick={() => changeScale(Math.sqrt(2))}>+</button>
         <br />
-        <RectEditor
+        <ShapeEditor
           planeImageSrc={formImage}
           scale={scale}
-          onAddChild={({ x, y, width, height }) => {
+          onAddShape={({ x, y, width, height }) => {
             this.setState(state => ({
               items: [
                 ...state.items,
@@ -68,7 +68,7 @@ class App extends Component {
           {items.map((item, index) => {
             const { id, width, height, x, y, type, ...otherProps } = item;
             return (
-              <SingleLineChild
+              <SingleLineShape
                 key={id}
                 width={width}
                 height={height}
@@ -86,7 +86,7 @@ class App extends Component {
               />
             );
           })}
-        </RectEditor>
+        </ShapeEditor>
       </div>
     );
   }

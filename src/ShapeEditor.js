@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import wrapChild from './wrapChild';
+import wrapShape from './wrapShape';
 
 function getScaledMouseCoordinates(event, scale = 1) {
   const { top, left } = event.target.getBoundingClientRect();
@@ -22,11 +22,11 @@ function getRectFromCornerCoordinates(corner1, corner2) {
   };
 }
 
-const DraggedOne = wrapChild(() => (
+const DraggedOne = wrapShape(() => (
   <div style={{ background: 'rgba(0,0,255,0.5)', height: '100%' }} />
 ));
 
-class RectEditor extends Component {
+class ShapeEditor extends Component {
   constructor(props) {
     super(props);
 
@@ -149,7 +149,7 @@ class RectEditor extends Component {
         hasDragStarted: false,
       },
       () => {
-        this.props.onAddChild(newRect);
+        this.props.onAddShape(newRect);
       }
     );
   }
@@ -242,20 +242,20 @@ class RectEditor extends Component {
   }
 }
 
-RectEditor.propTypes = {
+ShapeEditor.propTypes = {
   planeImageSrc: PropTypes.string.isRequired,
   scale: PropTypes.number,
   children: PropTypes.node,
-  onAddChild: PropTypes.func.isRequired,
+  onAddShape: PropTypes.func.isRequired,
   constrainMove: PropTypes.func,
   constrainResize: PropTypes.func,
 };
 
-RectEditor.defaultProps = {
+ShapeEditor.defaultProps = {
   constrainMove: ({ x, y }) => ({ x, y }),
   constrainResize: ({ movingCorner }) => movingCorner,
   scale: 1,
   children: null,
 };
 
-export default RectEditor;
+export default ShapeEditor;

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-function wrapChild(WrappedComponent) {
+function wrapShape(WrappedComponent) {
   const ItemHOC = class extends React.Component {
     constructor(props) {
       super(props);
@@ -109,7 +109,7 @@ function wrapChild(WrappedComponent) {
 
       return (
         <div
-          className="rse-child-wrapper"
+          className="rse-shape-wrapper"
           style={{
             boxSizing: 'border-box',
             height: scaledHeight,
@@ -168,4 +168,4 @@ function wrapChild(WrappedComponent) {
   return ItemHOC;
 }
 
-export default wrapChild;
+export default wrapShape;

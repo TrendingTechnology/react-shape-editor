@@ -1,7 +1,7 @@
 import React from 'react';
-import wrapChild from './wrapChild';
+import wrapShape from './wrapShape';
 
-const SingleLineChild = () => (
+const SingleLineShape = () => (
   <div
     style={{
       height: '100%',
@@ -12,4 +12,4 @@ const SingleLineChild = () => (
   />
 );
 
-export default wrapChild(SingleLineChild);
+export default wrapShape(SingleLineShape);
