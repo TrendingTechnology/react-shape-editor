@@ -14,7 +14,7 @@ class App extends Component {
     super(props);
 
     this.state = {
-      scale: 1,
+      scale: 0.75,
       items: [{ id: 1, x: 92, y: 200, width: 50, height: 25 }],
     };
   }
@@ -28,6 +28,7 @@ class App extends Component {
         scale: Math.max(MIN_SCALE, Math.min(MAX_SCALE, state.scale * ratio)),
       }));
     const { scale, items } = this.state;
+    const to5 = n => Math.floor(n / 5) * 5;
 
     return (
       <div style={{ height: 400, paddingLeft: 20 }}>
@@ -35,7 +36,7 @@ class App extends Component {
         <button onClick={() => changeScale(Math.sqrt(2))}>+</button>
         <br />
         <RectEditor
-          backgroundSrc={formImage}
+          planeImageSrc={formImage}
           scale={scale}
           onAddChild={({ x, y, width, height }) => {
             this.setState(state => ({
@@ -45,6 +46,23 @@ class App extends Component {
               ],
             }));
             iterator += 1;
+          }}
+          constrainMove={({ x, y, width, height, planeWidth, planeHeight }) => {
+            return {
+              x: to5(Math.min(planeWidth - width, Math.max(0, x))),
+              y: to5(Math.min(planeHeight - height, Math.max(0, y))),
+            };
+          }}
+          constrainResize={({
+            startCorner: { x: startX, y: startY },
+            movingCorner: { x: movingX, y: movingY },
+            planeWidth,
+            planeHeight,
+          }) => {
+            return {
+              x: to5(Math.min(planeWidth, Math.max(0, movingX))),
+              y: to5(Math.min(planeHeight, Math.max(0, movingY))),
+            };
           }}
         >
           {items.map((item, index) => {

@@ -8,12 +8,15 @@ function wrapChild(WrappedComponent) {
 
       this.state = {
         hasDragStarted: false,
-        dragStartCoordinates: null,
         dragCurrentCoordinates: null,
+        dragInnerOffset: null,
       };
 
       this.onMouseUp = this.onMouseUp.bind(this);
       this.onMouseMove = this.onMouseMove.bind(this);
+      this.getParentCoordinatesFromEvent = this.getParentCoordinatesFromEvent.bind(
+        this
+      );
     }
 
     componentDidMount() {
@@ -26,22 +29,32 @@ function wrapChild(WrappedComponent) {
       window.removeEventListener('mousemove', this.onMouseMove);
     }
 
+    onMouseMove(event) {
+      if (!this.state.hasDragStarted) {
+        return;
+      }
+
+      const coords = this.getParentCoordinatesFromEvent(event);
+      if (coords) {
+        this.setState({ dragCurrentCoordinates: coords });
+      }
+    }
+
     onMouseUp() {
       if (!this.state.hasDragStarted) {
         return;
       }
 
-      const { onChange, x, y } = this.props;
-      const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
+      const { onChange } = this.props;
+      const { dragCurrentCoordinates } = this.state;
 
-      const nextX = x + dragCurrentCoordinates.x - dragStartCoordinates.x;
-      const nextY = y + dragCurrentCoordinates.y - dragStartCoordinates.y;
+      const { x: nextX, y: nextY } = dragCurrentCoordinates;
 
       this.setState(
         {
           hasDragStarted: false,
-          dragStartCoordinates: null,
           dragCurrentCoordinates: null,
+          dragInnerOffset: null,
         },
         () => {
           onChange(
@@ -57,31 +70,40 @@ function wrapChild(WrappedComponent) {
       );
     }
 
-    onMouseMove(event) {
-      if (!this.state.hasDragStarted) {
-        return;
+    getParentCoordinatesFromEvent(
+      event,
+      dragInnerOffset = this.state.dragInnerOffset
+    ) {
+      const { scale, constrainMove, width, height } = this.props;
+      let planeContainer = event.target;
+      while (
+        planeContainer &&
+        (!planeContainer.dataset || !planeContainer.dataset.isPlaneContainer)
+      ) {
+        planeContainer = planeContainer.parentNode;
       }
-      const { scale } = this.props;
 
-      const coords = { x: event.clientX / scale, y: event.clientY / scale };
-      this.setState({ dragCurrentCoordinates: coords });
+      // If this event did not take place inside the plane, ignore it
+      if (!planeContainer) {
+        return null;
+      }
+
+      const { top, left } = planeContainer.getBoundingClientRect();
+      const rawX = (event.clientX - left) / scale - dragInnerOffset.x;
+      const rawY = (event.clientY - top) / scale - dragInnerOffset.y;
+      const { x, y } = constrainMove({ x: rawX, y: rawY, width, height });
+
+      return { x, y };
     }
 
     render() {
       const { scale, pointerEvents, ...otherProps } = this.props;
-      const {
-        hasDragStarted,
-        dragStartCoordinates,
-        dragCurrentCoordinates,
-      } = this.state;
-      const dragDeltaX = !hasDragStarted
-        ? 0
-        : dragCurrentCoordinates.x - dragStartCoordinates.x;
-      const dragDeltaY = !hasDragStarted
-        ? 0
-        : dragCurrentCoordinates.y - dragStartCoordinates.y;
-      const scaledX = (this.props.x + dragDeltaX) * scale;
-      const scaledY = (this.props.y + dragDeltaY) * scale;
+      const { hasDragStarted, dragCurrentCoordinates } = this.state;
+
+      const scaledX =
+        (hasDragStarted ? dragCurrentCoordinates.x : this.props.x) * scale;
+      const scaledY =
+        (hasDragStarted ? dragCurrentCoordinates.y : this.props.y) * scale;
       const scaledWidth = this.props.width * scale;
       const scaledHeight = this.props.height * scale;
 
@@ -99,14 +121,21 @@ function wrapChild(WrappedComponent) {
             pointerEvents,
           }}
           onMouseDown={event => {
-            const coords = {
-              x: event.clientX / scale,
-              y: event.clientY / scale,
+            const { top, left } = event.target.getBoundingClientRect();
+            const dragInnerOffset = {
+              x: (event.clientX - left) / scale,
+              y: (event.clientY - top) / scale,
             };
+
+            const coords = this.getParentCoordinatesFromEvent(
+              event,
+              dragInnerOffset
+            );
+
             this.setState({
               hasDragStarted: true,
-              dragStartCoordinates: coords,
               dragCurrentCoordinates: coords,
+              dragInnerOffset,
             });
             event.stopPropagation();
           }}
@@ -118,6 +147,8 @@ function wrapChild(WrappedComponent) {
   };
 
   ItemHOC.propTypes = {
+    constrainMove: PropTypes.func,
+    constrainResize: PropTypes.func,
     scale: PropTypes.number,
     width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
@@ -128,6 +159,8 @@ function wrapChild(WrappedComponent) {
   };
 
   ItemHOC.defaultProps = {
+    constrainMove: () => {},
+    constrainResize: () => {},
     scale: 1,
     pointerEvents: 'auto',
   };

@@ -1,10 +1,26 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import wrapChild from './wrapChild';
-import {
-  getScaledMouseCoordinates,
-  getRectFromCornerCoordinates,
-} from './utils';
+
+function getScaledMouseCoordinates(event, scale = 1) {
+  const { top, left } = event.target.getBoundingClientRect();
+  const domX = event.clientX - left;
+  const domY = event.clientY - top;
+
+  return {
+    x: domX / scale,
+    y: domY / scale,
+  };
+}
+
+function getRectFromCornerCoordinates(corner1, corner2) {
+  return {
+    x: Math.min(corner1.x, corner2.x),
+    y: Math.min(corner1.y, corner2.y),
+    width: Math.abs(corner1.x - corner2.x),
+    height: Math.abs(corner1.y - corner2.y),
+  };
+}
 
 const DraggedOne = wrapChild(() => (
   <div style={{ background: 'rgba(0,0,255,0.5)', height: '100%' }} />
@@ -15,8 +31,8 @@ class RectEditor extends Component {
     super(props);
 
     this.state = {
-      bgWidth: 0,
-      bgHeight: 0,
+      planeWidth: 0,
+      planeHeight: 0,
       dragStartCoordinates: null,
       dragCurrentCoordinates: null,
       hasDragStarted: false,
@@ -35,7 +51,7 @@ class RectEditor extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.backgroundSrc !== this.props.backgroundSrc) {
+    if (prevProps.planeImageSrc !== this.props.planeImageSrc) {
       this.getImageDimensionInfo();
     }
   }
@@ -47,7 +63,7 @@ class RectEditor extends Component {
 
   // Load the background image in memory to measure its dimensions
   getImageDimensionInfo() {
-    if (!this.props.backgroundSrc) {
+    if (!this.props.planeImageSrc) {
       return;
     }
 
@@ -56,28 +72,51 @@ class RectEditor extends Component {
     memoryImage.onload = () => {
       if (!this.unmounted) {
         this.setState({
-          bgWidth: memoryImage.naturalWidth,
-          bgHeight: memoryImage.naturalHeight,
+          planeWidth: memoryImage.naturalWidth,
+          planeHeight: memoryImage.naturalHeight,
         });
       }
     };
-    memoryImage.src = this.props.backgroundSrc;
+    memoryImage.src = this.props.planeImageSrc;
   }
 
   getScaledDimensions() {
     const { scale } = this.props;
-    const { bgHeight, bgWidth } = this.state;
+    const { planeHeight, planeWidth } = this.state;
 
     return {
-      scaledWidth: bgWidth * scale,
-      scaledHeight: bgHeight * scale,
+      scaledWidth: planeWidth * scale,
+      scaledHeight: planeHeight * scale,
     };
   }
 
-  getCoordinatesFromEvent(event) {
-    const { scale } = this.props;
+  getCoordinatesFromEvent(event, isStartEvent = false) {
+    const { scale, constrainResize, constrainMove } = this.props;
+    const { dragStartCoordinates, planeWidth, planeHeight } = this.state;
 
-    return getScaledMouseCoordinates(event, scale);
+    const { x: rawX, y: rawY } = getScaledMouseCoordinates(event, scale);
+
+    if (isStartEvent) {
+      const { x, y } = constrainMove({
+        x: rawX,
+        y: rawY,
+        width: 0,
+        height: 0,
+        planeWidth,
+        planeHeight,
+      });
+
+      return { x, y };
+    }
+
+    const { x, y } = constrainResize({
+      startCorner: dragStartCoordinates,
+      movingCorner: { x: rawX, y: rawY },
+      planeWidth,
+      planeHeight,
+    });
+
+    return { x, y };
   }
 
   onDragFinish(event) {
@@ -86,7 +125,10 @@ class RectEditor extends Component {
     }
 
     const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
-    if (dragStartCoordinates === dragCurrentCoordinates) {
+    if (
+      dragStartCoordinates.x === dragCurrentCoordinates.x ||
+      dragStartCoordinates.y === dragCurrentCoordinates.y
+    ) {
       this.setState({
         dragStartCoordinates: null,
         dragCurrentCoordinates: null,
@@ -94,8 +136,6 @@ class RectEditor extends Component {
       });
       return;
     }
-
-    const { onAddChild } = this.props;
 
     const newRect = getRectFromCornerCoordinates(
       dragStartCoordinates,
@@ -109,17 +149,19 @@ class RectEditor extends Component {
         hasDragStarted: false,
       },
       () => {
-        onAddChild(newRect);
+        this.props.onAddChild(newRect);
       }
     );
   }
 
   render() {
-    const { backgroundSrc, children, scale } = this.props;
+    const { planeImageSrc, children, scale, constrainMove } = this.props;
     const {
       hasDragStarted,
       dragStartCoordinates,
       dragCurrentCoordinates,
+      planeWidth,
+      planeHeight,
     } = this.state;
     const { scaledWidth, scaledHeight } = this.getScaledDimensions();
 
@@ -130,16 +172,20 @@ class RectEditor extends Component {
         )
       : null;
 
+    const childConstrainMove = rect =>
+      constrainMove({ ...rect, planeWidth, planeHeight });
+
     return (
       <div
-        className="rre-container"
+        className="rre-outer-container"
         style={{ overflow: 'auto', height: '100%', userSelect: 'none' }}
       >
-        {backgroundSrc ? (
+        {planeImageSrc ? (
           <div
-            className="rre-image-container"
+            data-is-plane-container
+            className="rre-plane-container"
             style={{
-              backgroundImage: `url(${backgroundSrc})`,
+              backgroundImage: `url(${planeImageSrc})`,
               backgroundSize: 'cover',
               height: scaledHeight,
               width: scaledWidth,
@@ -147,7 +193,10 @@ class RectEditor extends Component {
               overflow: 'hidden',
             }}
             onMouseDown={event => {
-              const startCoordinates = this.getCoordinatesFromEvent(event);
+              const startCoordinates = this.getCoordinatesFromEvent(
+                event,
+                true
+              );
               this.setState({
                 hasDragStarted: true,
                 dragStartCoordinates: startCoordinates,
@@ -168,6 +217,7 @@ class RectEditor extends Component {
           >
             {React.Children.map(children, (child, i) =>
               React.cloneElement(child, {
+                constrainMove: childConstrainMove,
                 scale,
                 pointerEvents: hasDragStarted ? 'none' : 'auto',
               })
@@ -193,13 +243,17 @@ class RectEditor extends Component {
 }
 
 RectEditor.propTypes = {
-  backgroundSrc: PropTypes.string.isRequired,
+  planeImageSrc: PropTypes.string.isRequired,
   scale: PropTypes.number,
   children: PropTypes.node,
   onAddChild: PropTypes.func.isRequired,
+  constrainMove: PropTypes.func,
+  constrainResize: PropTypes.func,
 };
 
 RectEditor.defaultProps = {
+  constrainMove: ({ x, y }) => ({ x, y }),
+  constrainResize: ({ movingCorner }) => movingCorner,
   scale: 1,
   children: null,
 };
