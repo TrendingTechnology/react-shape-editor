@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import wrapChild from './wrapChild';
-import { getScaledMouseCoordinates } from './utils';
+import {
+  getScaledMouseCoordinates,
+  getRectFromCornerCoordinates,
+} from './utils';
 
 const DraggedOne = wrapChild(() => (
   <div style={{ background: 'rgba(0,0,255,0.5)', height: '100%' }} />
@@ -21,10 +24,6 @@ class RectEditor extends Component {
 
     this.getImageDimensionInfo = this.getImageDimensionInfo.bind(this);
     this.getScaledDimensions = this.getScaledDimensions.bind(this);
-    this.getCoordinatesInOriginal = this.getCoordinatesInOriginal.bind(this);
-    this.getRectFromDragCoordinates = this.getRectFromDragCoordinates.bind(
-      this
-    );
     this.getCoordinatesFromEvent = this.getCoordinatesFromEvent.bind(this);
     this.onDragFinish = this.onDragFinish.bind(this);
   }
@@ -75,47 +74,19 @@ class RectEditor extends Component {
     };
   }
 
-  getCoordinatesInOriginal(x, y) {
-    const { scale } = this.props;
-    return {
-      x: x / scale,
-      y: y / scale,
-    };
-  }
-
-  getRectFromDragCoordinates() {
-    const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
-
-    return {
-      imageX: Math.min(
-        dragStartCoordinates.imageX,
-        dragCurrentCoordinates.imageX
-      ),
-      imageY: Math.min(
-        dragStartCoordinates.imageY,
-        dragCurrentCoordinates.imageY
-      ),
-      widthInImage: Math.abs(
-        dragStartCoordinates.imageX - dragCurrentCoordinates.imageX
-      ),
-      heightInImage: Math.abs(
-        dragStartCoordinates.imageY - dragCurrentCoordinates.imageY
-      ),
-    };
-  }
-
   getCoordinatesFromEvent(event) {
     const { scale } = this.props;
-    const { x: imageX, y: imageY } = getScaledMouseCoordinates(event, scale);
 
-    return { imageX, imageY };
+    return getScaledMouseCoordinates(event, scale);
   }
 
   onDragFinish(event) {
     if (!this.state.hasDragStarted) {
       return;
     }
-    if (this.state.dragStartCoordinates === this.state.dragCurrentCoordinates) {
+
+    const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
+    if (dragStartCoordinates === dragCurrentCoordinates) {
       this.setState({
         dragStartCoordinates: null,
         dragCurrentCoordinates: null,
@@ -126,12 +97,10 @@ class RectEditor extends Component {
 
     const { onAddChild } = this.props;
 
-    const {
-      imageX,
-      imageY,
-      widthInImage,
-      heightInImage,
-    } = this.getRectFromDragCoordinates();
+    const newRect = getRectFromCornerCoordinates(
+      dragStartCoordinates,
+      dragCurrentCoordinates
+    );
 
     this.setState(
       {
@@ -140,35 +109,42 @@ class RectEditor extends Component {
         hasDragStarted: false,
       },
       () => {
-        onAddChild({
-          x: imageX,
-          y: imageY,
-          width: widthInImage,
-          height: heightInImage,
-        });
+        onAddChild(newRect);
       }
     );
   }
 
   render() {
     const { backgroundSrc, children, scale } = this.props;
-    const { hasDragStarted } = this.state;
+    const {
+      hasDragStarted,
+      dragStartCoordinates,
+      dragCurrentCoordinates,
+    } = this.state;
     const { scaledWidth, scaledHeight } = this.getScaledDimensions();
-    const dims = hasDragStarted ? this.getRectFromDragCoordinates() : null;
+
+    const draggedRect = hasDragStarted
+      ? getRectFromCornerCoordinates(
+          dragStartCoordinates,
+          dragCurrentCoordinates
+        )
+      : null;
 
     return (
       <div
+        className="rre-container"
         style={{ overflow: 'auto', height: '100%', userSelect: 'none' }}
-        className="rect-editor"
       >
         {backgroundSrc ? (
           <div
+            className="rre-image-container"
             style={{
               backgroundImage: `url(${backgroundSrc})`,
               backgroundSize: 'cover',
               height: scaledHeight,
               width: scaledWidth,
               position: 'relative',
+              overflow: 'hidden',
             }}
             onMouseDown={event => {
               const startCoordinates = this.getCoordinatesFromEvent(event);
@@ -198,13 +174,13 @@ class RectEditor extends Component {
             )}
             {hasDragStarted && (
               <DraggedOne
-                x={dims.imageX}
-                y={dims.imageY}
-                width={dims.widthInImage}
-                height={dims.heightInImage}
+                x={draggedRect.x}
+                y={draggedRect.y}
+                width={draggedRect.width}
+                height={draggedRect.height}
                 scale={scale}
                 pointerEvents="none"
-                onDimensionChange={() => {}}
+                onChange={() => {}}
               />
             )}
           </div>

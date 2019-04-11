@@ -5,6 +5,10 @@ import formImage from './blank.jpg';
 
 let iterator = 0;
 
+function arrayReplace(arr, index, item) {
+  return [...arr.slice(0, index), item, ...arr.slice(index + 1)];
+}
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -43,19 +47,27 @@ class App extends Component {
             iterator += 1;
           }}
         >
-          {items.map(({ id, width, height, x, y, type, ...otherProps }) => (
-            <SingleLineChild
-              key={id}
-              width={width}
-              height={height}
-              x={x}
-              y={y}
-              onDimensionChange={args => {
-                console.log('((((dimensionChangeArgs))))', args); // eslint-disable-line no-console
-              }}
-              {...otherProps}
-            />
-          ))}
+          {items.map((item, index) => {
+            const { id, width, height, x, y, type, ...otherProps } = item;
+            return (
+              <SingleLineChild
+                key={id}
+                width={width}
+                height={height}
+                x={x}
+                y={y}
+                onChange={newRect => {
+                  this.setState(state => ({
+                    items: arrayReplace(state.items, index, {
+                      ...item,
+                      ...newRect,
+                    }),
+                  }));
+                }}
+                {...otherProps}
+              />
+            );
+          })}
         </RectEditor>
       </div>
     );
