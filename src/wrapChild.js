@@ -109,7 +109,7 @@ function wrapChild(WrappedComponent) {
 
       return (
         <div
-          className="rre-child-wrapper"
+          className="rse-child-wrapper"
           style={{
             boxSizing: 'border-box',
             height: scaledHeight,

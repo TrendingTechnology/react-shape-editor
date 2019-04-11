@@ -177,13 +177,13 @@ class RectEditor extends Component {
 
     return (
       <div
-        className="rre-outer-container"
+        className="rse-outer-container"
         style={{ overflow: 'auto', height: '100%', userSelect: 'none' }}
       >
         {planeImageSrc ? (
           <div
             data-is-plane-container
-            className="rre-plane-container"
+            className="rse-plane-container"
             style={{
               backgroundImage: `url(${planeImageSrc})`,
               backgroundSize: 'cover',
