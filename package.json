@@ -8,10 +8,10 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "license" : "MIT",
+  "license": "MIT",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/fritz-c/react-shape-editor.git"
+    "type": "git",
+    "url": "https://github.com/fritz-c/react-shape-editor.git"
   },
   "homepage": "https://github.com/fritz-c/react-shape-editor#readme",
   "bugs": "https://github.com/fritz-c/react-shape-editor/issues",
