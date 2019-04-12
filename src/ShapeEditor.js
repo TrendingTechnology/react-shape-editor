@@ -3,17 +3,6 @@ import PropTypes from 'prop-types';
 import wrapShape from './wrapShape';
 import { getRectFromCornerCoordinates } from './utils';
 
-function getScaledMouseCoordinates(event, scale = 1) {
-  const { top, left } = event.target.getBoundingClientRect();
-  const domX = event.clientX - left;
-  const domY = event.clientY - top;
-
-  return {
-    x: domX / scale,
-    y: domY / scale,
-  };
-}
-
 const DefaultDrawComponent = wrapShape(() => (
   <div style={{ background: 'rgba(0,0,255,0.5)', height: '100%' }} />
 ));
@@ -90,7 +79,9 @@ class ShapeEditor extends Component {
     const { scale, constrainResize, constrainMove } = this.props;
     const { dragStartCoordinates, planeWidth, planeHeight } = this.state;
 
-    const { x: rawX, y: rawY } = getScaledMouseCoordinates(event, scale);
+    const { top, left } = event.target.getBoundingClientRect();
+    const rawX = (event.clientX - left) / scale;
+    const rawY = (event.clientY - top) / scale;
 
     if (isStartEvent) {
       const { x, y } = constrainMove({
