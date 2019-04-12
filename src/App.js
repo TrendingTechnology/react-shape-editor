@@ -19,7 +19,7 @@ class App extends Component {
 
     this.state = {
       scale: 0.75,
-      items: [{ id: 1, x: 92, y: 200, width: 50, height: 25 }],
+      items: [{ id: 1, x: 92, y: 200, width: 150, height: 125 }],
     };
   }
 

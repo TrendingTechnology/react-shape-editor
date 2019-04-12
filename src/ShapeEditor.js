@@ -26,7 +26,6 @@ class ShapeEditor extends Component {
     this.nextChildRefs = {};
 
     this.getImageDimensionInfo = this.getImageDimensionInfo.bind(this);
-    this.getScaledDimensions = this.getScaledDimensions.bind(this);
     this.getCoordinatesFromEvent = this.getCoordinatesFromEvent.bind(this);
     this.onDragFinish = this.onDragFinish.bind(this);
   }
@@ -75,16 +74,6 @@ class ShapeEditor extends Component {
       }
     };
     memoryImage.src = this.props.planeImageSrc;
-  }
-
-  getScaledDimensions() {
-    const { scale } = this.props;
-    const { planeHeight, planeWidth } = this.state;
-
-    return {
-      scaledWidth: planeWidth * scale,
-      scaledHeight: planeHeight * scale,
-    };
   }
 
   getCoordinatesFromEvent(event, isStartEvent = false) {
@@ -160,7 +149,6 @@ class ShapeEditor extends Component {
       planeHeight,
       planeWidth,
     } = this.state;
-    const { scaledWidth, scaledHeight } = this.getScaledDimensions();
 
     const draggedRect = hasDragStarted
       ? getRectFromCornerCoordinates(
@@ -186,8 +174,8 @@ class ShapeEditor extends Component {
             style={{
               backgroundImage: `url(${planeImageSrc})`,
               backgroundSize: 'cover',
-              height: scaledHeight,
-              width: scaledWidth,
+              height: planeHeight * scale,
+              width: planeWidth * scale,
               position: 'relative',
               overflow: 'hidden',
             }}

@@ -24,7 +24,7 @@ const getPlaneContainer = node => {
 
 // Smooths out some of the hairy issues of dealing with
 // numbers like 19.9999999999245
-const highPrecisionRound = (n, digits = 5) => {
+const highPrecisionRound = (n, digits = 1) => {
   const factor = Math.pow(10, digits);
   return Math.round(n * factor) / factor;
 };
@@ -142,11 +142,12 @@ function wrapShape(WrappedComponent) {
 
       const { top, left } = planeContainer.getBoundingClientRect();
       const rawX = highPrecisionRound(
-        (event.clientX - left) / scale - dragInnerOffset.x
+        (event.clientX - left - dragInnerOffset.x) / scale
       );
       const rawY = highPrecisionRound(
-        (event.clientY - top) / scale - dragInnerOffset.y
+        (event.clientY - top - dragInnerOffset.y) / scale
       );
+
       const { x, y } = constrainMove({ x: rawX, y: rawY, width, height });
 
       return { x, y };
@@ -169,10 +170,10 @@ function wrapShape(WrappedComponent) {
 
       const { top, left } = planeContainer.getBoundingClientRect();
       const rawX = highPrecisionRound(
-        (event.clientX - left) / scale - dragInnerOffset.x
+        (event.clientX - left - dragInnerOffset.x) / scale
       );
       const rawY = highPrecisionRound(
-        (event.clientY - top) / scale - dragInnerOffset.y
+        (event.clientY - top - dragInnerOffset.y) / scale
       );
 
       const { x, y } = constrainResize({
@@ -329,8 +330,8 @@ function wrapShape(WrappedComponent) {
                   height,
                 } = event.target.getBoundingClientRect();
                 const dragInnerOffset = {
-                  x: (event.clientX - left - width / 2) / scale,
-                  y: (event.clientY - top - height / 2) / scale,
+                  x: event.clientX - left - width / 2,
+                  y: event.clientY - top - height / 2,
                 };
 
                 // The corner of the resize box that moves
@@ -396,8 +397,8 @@ function wrapShape(WrappedComponent) {
             event.stopPropagation();
             const { top, left } = event.target.getBoundingClientRect();
             const dragInnerOffset = {
-              x: (event.clientX - left) / scale,
-              y: (event.clientY - top) / scale,
+              x: event.clientX - left,
+              y: event.clientY - top,
             };
 
             const coords = this.getParentCoordinatesForMove(
