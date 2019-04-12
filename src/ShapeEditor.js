@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import wrapShape from './wrapShape';
+import { getRectFromCornerCoordinates } from './utils';
 
 function getScaledMouseCoordinates(event, scale = 1) {
   const { top, left } = event.target.getBoundingClientRect();
@@ -10,15 +11,6 @@ function getScaledMouseCoordinates(event, scale = 1) {
   return {
     x: domX / scale,
     y: domY / scale,
-  };
-}
-
-function getRectFromCornerCoordinates(corner1, corner2) {
-  return {
-    x: Math.min(corner1.x, corner2.x),
-    y: Math.min(corner1.y, corner2.y),
-    width: Math.abs(corner1.x - corner2.x),
-    height: Math.abs(corner1.y - corner2.y),
   };
 }
 
@@ -112,6 +104,7 @@ class ShapeEditor extends Component {
     const { x, y } = constrainResize({
       startCorner: dragStartCoordinates,
       movingCorner: { x: rawX, y: rawY },
+      lockedDimension: null,
       planeWidth,
       planeHeight,
     });
@@ -155,7 +148,13 @@ class ShapeEditor extends Component {
   }
 
   render() {
-    const { planeImageSrc, children, scale, constrainMove } = this.props;
+    const {
+      planeImageSrc,
+      children,
+      scale,
+      constrainMove,
+      constrainResize,
+    } = this.props;
     const {
       hasDragStarted,
       dragStartCoordinates,
@@ -174,6 +173,8 @@ class ShapeEditor extends Component {
 
     const childConstrainMove = rect =>
       constrainMove({ ...rect, planeWidth, planeHeight });
+    const childConstrainResize = args =>
+      constrainResize({ ...args, planeWidth, planeHeight });
 
     return (
       <div
@@ -218,6 +219,7 @@ class ShapeEditor extends Component {
             {React.Children.map(children, (child, i) =>
               React.cloneElement(child, {
                 constrainMove: childConstrainMove,
+                constrainResize: childConstrainResize,
                 scale,
                 pointerEvents: hasDragStarted ? 'none' : 'auto',
               })
@@ -243,19 +245,19 @@ class ShapeEditor extends Component {
 }
 
 ShapeEditor.propTypes = {
-  planeImageSrc: PropTypes.string.isRequired,
-  scale: PropTypes.number,
   children: PropTypes.node,
-  onAddShape: PropTypes.func.isRequired,
   constrainMove: PropTypes.func,
   constrainResize: PropTypes.func,
+  onAddShape: PropTypes.func.isRequired,
+  planeImageSrc: PropTypes.string.isRequired,
+  scale: PropTypes.number,
 };
 
 ShapeEditor.defaultProps = {
+  children: null,
   constrainMove: ({ x, y }) => ({ x, y }),
   constrainResize: ({ movingCorner }) => movingCorner,
   scale: 1,
-  children: null,
 };
 
 export default ShapeEditor;

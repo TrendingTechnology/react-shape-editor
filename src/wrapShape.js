@@ -1,5 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { getRectFromCornerCoordinates } from './utils';
+
+const defaultDragState = {
+  hasDragStarted: false,
+  dragStartCoordinates: null,
+  dragCurrentCoordinates: null,
+  dragInnerOffset: null,
+  dragLock: null,
+};
+
+const getPlaneContainer = node => {
+  let planeContainer = node;
+  while (
+    planeContainer &&
+    (!planeContainer.dataset || !planeContainer.dataset.isPlaneContainer)
+  ) {
+    planeContainer = planeContainer.parentNode;
+  }
+
+  return planeContainer;
+};
 
 function wrapShape(WrappedComponent) {
   const ItemHOC = class extends React.Component {
@@ -7,14 +28,16 @@ function wrapShape(WrappedComponent) {
       super(props);
 
       this.state = {
-        hasDragStarted: false,
-        dragCurrentCoordinates: null,
-        dragInnerOffset: null,
+        ...defaultDragState,
+        isDragToMove: true,
       };
 
       this.onMouseUp = this.onMouseUp.bind(this);
       this.onMouseMove = this.onMouseMove.bind(this);
-      this.getParentCoordinatesFromEvent = this.getParentCoordinatesFromEvent.bind(
+      this.getParentCoordinatesForMove = this.getParentCoordinatesForMove.bind(
+        this
+      );
+      this.getParentCoordinatesForResize = this.getParentCoordinatesForResize.bind(
         this
       );
     }
@@ -34,9 +57,24 @@ function wrapShape(WrappedComponent) {
         return;
       }
 
-      const coords = this.getParentCoordinatesFromEvent(event);
-      if (coords) {
-        this.setState({ dragCurrentCoordinates: coords });
+      if (this.state.isDragToMove) {
+        const coords = this.getParentCoordinatesForMove(event);
+        if (coords) {
+          this.setState({
+            dragCurrentCoordinates: coords,
+            dragStartCoordinates: {
+              x: coords.x + this.props.width,
+              y: coords.y + this.props.height,
+            },
+          });
+        }
+      } else {
+        const coords = this.getParentCoordinatesForResize(event);
+        if (coords) {
+          this.setState({
+            dragCurrentCoordinates: coords,
+          });
+        }
       }
     }
 
@@ -46,17 +84,16 @@ function wrapShape(WrappedComponent) {
       }
 
       const { onChange } = this.props;
-      const { dragCurrentCoordinates } = this.state;
+      const {
+        dragStartCoordinates,
+        dragCurrentCoordinates,
+        isDragToMove,
+      } = this.state;
 
-      const { x: nextX, y: nextY } = dragCurrentCoordinates;
+      if (isDragToMove) {
+        const { x: nextX, y: nextY } = dragCurrentCoordinates;
 
-      this.setState(
-        {
-          hasDragStarted: false,
-          dragCurrentCoordinates: null,
-          dragInnerOffset: null,
-        },
-        () => {
+        this.setState(defaultDragState, () => {
           onChange(
             {
               x: nextX,
@@ -66,27 +103,31 @@ function wrapShape(WrappedComponent) {
             },
             this.props
           );
-        }
-      );
+        });
+      } else {
+        this.setState(defaultDragState, () => {
+          onChange(
+            getRectFromCornerCoordinates(
+              dragStartCoordinates,
+              dragCurrentCoordinates
+            ),
+            this.props
+          );
+        });
+      }
     }
 
-    getParentCoordinatesFromEvent(
+    getParentCoordinatesForMove(
       event,
       dragInnerOffset = this.state.dragInnerOffset
     ) {
-      const { scale, constrainMove, width, height } = this.props;
-      let planeContainer = event.target;
-      while (
-        planeContainer &&
-        (!planeContainer.dataset || !planeContainer.dataset.isPlaneContainer)
-      ) {
-        planeContainer = planeContainer.parentNode;
-      }
-
       // If this event did not take place inside the plane, ignore it
+      const planeContainer = getPlaneContainer(event.target);
       if (!planeContainer) {
         return null;
       }
+
+      const { scale, constrainMove, width, height } = this.props;
 
       const { top, left } = planeContainer.getBoundingClientRect();
       const rawX = (event.clientX - left) / scale - dragInnerOffset.x;
@@ -96,38 +137,169 @@ function wrapShape(WrappedComponent) {
       return { x, y };
     }
 
+    getParentCoordinatesForResize(
+      event,
+      dragStartCoordinates = this.state.dragStartCoordinates,
+      dragCurrentCoordinates = this.state.dragCurrentCoordinates,
+      dragInnerOffset = this.state.dragInnerOffset,
+      dragLock = this.state.dragLock
+    ) {
+      // If this event did not take place inside the plane, ignore it
+      const planeContainer = getPlaneContainer(event.target);
+      if (!planeContainer) {
+        return null;
+      }
+
+      const { scale, constrainResize, width, height } = this.props;
+
+      const { top, left } = planeContainer.getBoundingClientRect();
+      const rawX = (event.clientX - left) / scale - dragInnerOffset.x;
+      const rawY = (event.clientY - top) / scale - dragInnerOffset.y;
+      const { x, y } = constrainResize({
+        startCorner: dragStartCoordinates,
+        movingCorner: { x: rawX, y: rawY },
+        width,
+        height,
+        lockedDimension: dragLock,
+      });
+
+      return {
+        x: dragLock !== 'x' ? x : dragCurrentCoordinates.x,
+        y: dragLock !== 'y' ? y : dragCurrentCoordinates.y,
+      };
+    }
+
     render() {
       const { scale, pointerEvents, ...otherProps } = this.props;
-      const { hasDragStarted, dragCurrentCoordinates } = this.state;
+      const {
+        hasDragStarted,
+        dragStartCoordinates,
+        dragCurrentCoordinates,
+      } = this.state;
 
-      const scaledX =
-        (hasDragStarted ? dragCurrentCoordinates.x : this.props.x) * scale;
-      const scaledY =
-        (hasDragStarted ? dragCurrentCoordinates.y : this.props.y) * scale;
-      const scaledWidth = this.props.width * scale;
-      const scaledHeight = this.props.height * scale;
+      const sides = {
+        left: !hasDragStarted
+          ? this.props.x
+          : Math.min(dragStartCoordinates.x, dragCurrentCoordinates.x),
+        right: !hasDragStarted
+          ? this.props.x + this.props.width
+          : Math.max(dragStartCoordinates.x, dragCurrentCoordinates.x),
+        top: !hasDragStarted
+          ? this.props.y
+          : Math.min(dragStartCoordinates.y, dragCurrentCoordinates.y),
+        bottom: !hasDragStarted
+          ? this.props.y + this.props.height
+          : Math.max(dragStartCoordinates.y, dragCurrentCoordinates.y),
+      };
+
+      const SPACIOUS_PIXELS = 20;
+      const hasSpaciousVertical =
+        (sides.bottom - sides.top) * scale > SPACIOUS_PIXELS;
+      const hasSpaciousHorizontal =
+        (sides.right - sides.left) * scale > SPACIOUS_PIXELS;
+      const handles = [
+        hasSpaciousHorizontal && ['n', 'ne', 'ns-resize', '50%', 0, 'x'],
+        ['ne', 'ne', 'nesw-resize', '100%', 0, null],
+        hasSpaciousVertical && ['e', 'se', 'ew-resize', '100%', '50%', 'y'],
+        ['se', 'se', 'nwse-resize', '100%', '100%', null],
+        hasSpaciousHorizontal && ['s', 'sw', 'ns-resize', '50%', '100%', 'x'],
+        ['sw', 'sw', 'nesw-resize', 0, '100%', null],
+        hasSpaciousVertical && ['w', 'nw', 'ew-resize', 0, '50%', 'y'],
+        ['nw', 'nw', 'nwse-resize', 0, 0, null],
+      ]
+        .filter(a => a)
+        .map(
+          (
+            [handleName, movementReferenceCorner, cursor, left, top, dragLock],
+            index
+          ) => (
+            <div
+              key={handleName}
+              style={{
+                position: 'absolute',
+                background: 'rgba(255,0,0,0.8)',
+                width: SPACIOUS_PIXELS / 2,
+                height: SPACIOUS_PIXELS / 2,
+                top,
+                left,
+                cursor,
+                // Note: the dragInnerOffset calculation is dependent on this transform
+                // (which simulates center-origin)
+                transform: 'translate(-50%, -50%)',
+              }}
+              onMouseDown={event => {
+                event.stopPropagation();
+                const {
+                  top,
+                  left,
+                  width,
+                  height,
+                } = event.target.getBoundingClientRect();
+                const dragInnerOffset = {
+                  x: (event.clientX - left - width / 2) / scale,
+                  y: (event.clientY - top - height / 2) / scale,
+                };
+
+                // The corner of the resize box that moves
+                const movementPoints = {
+                  nw: { x: sides.left, y: sides.top },
+                  sw: { x: sides.left, y: sides.bottom },
+                  ne: { x: sides.right, y: sides.top },
+                  se: { x: sides.right, y: sides.bottom },
+                };
+                // The corner of the resize box that stays static
+                const anchorPoints = {
+                  nw: movementPoints.se,
+                  sw: movementPoints.ne,
+                  ne: movementPoints.sw,
+                  se: movementPoints.nw,
+                };
+
+                const movingPoint = movementPoints[movementReferenceCorner];
+                const anchorPoint = anchorPoints[movementReferenceCorner];
+                const coords = this.getParentCoordinatesForResize(
+                  event,
+                  anchorPoint,
+                  movingPoint,
+                  dragInnerOffset,
+                  dragLock
+                );
+
+                this.setState({
+                  hasDragStarted: true,
+                  dragStartCoordinates: anchorPoint,
+                  dragCurrentCoordinates: coords,
+                  dragInnerOffset,
+                  isDragToMove: false,
+                  dragLock,
+                });
+              }}
+            />
+          )
+        );
 
       return (
         <div
           className="rse-shape-wrapper"
           style={{
             boxSizing: 'border-box',
-            height: scaledHeight,
-            width: scaledWidth,
+            height: (sides.bottom - sides.top) * scale,
+            width: (sides.right - sides.left) * scale,
             position: 'absolute',
-            top: scaledY,
-            left: scaledX,
+            top: sides.top * scale,
+            left: sides.left * scale,
             cursor: 'move',
             pointerEvents,
           }}
           onMouseDown={event => {
+            event.stopPropagation();
             const { top, left } = event.target.getBoundingClientRect();
             const dragInnerOffset = {
               x: (event.clientX - left) / scale,
               y: (event.clientY - top) / scale,
             };
 
-            const coords = this.getParentCoordinatesFromEvent(
+            const coords = this.getParentCoordinatesForMove(
               event,
               dragInnerOffset
             );
@@ -135,12 +307,17 @@ function wrapShape(WrappedComponent) {
             this.setState({
               hasDragStarted: true,
               dragCurrentCoordinates: coords,
+              dragStartCoordinates: {
+                x: coords.x + this.props.width,
+                y: coords.y + this.props.height,
+              },
               dragInnerOffset,
+              isDragToMove: true,
             });
-            event.stopPropagation();
           }}
         >
           <WrappedComponent {...otherProps} />
+          {handles}
         </div>
       );
     }
