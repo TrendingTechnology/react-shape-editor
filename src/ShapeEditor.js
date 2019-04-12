@@ -14,20 +14,24 @@ function getScaledMouseCoordinates(event, scale = 1) {
   };
 }
 
-const DraggedOne = wrapShape(() => (
+const DefaultDrawComponent = wrapShape(() => (
   <div style={{ background: 'rgba(0,0,255,0.5)', height: '100%' }} />
 ));
+
+const defaultDragState = {
+  hasDragStarted: false,
+  dragStartCoordinates: null,
+  dragCurrentCoordinates: null,
+};
 
 class ShapeEditor extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      ...defaultDragState,
       planeWidth: 0,
       planeHeight: 0,
-      dragStartCoordinates: null,
-      dragCurrentCoordinates: null,
-      hasDragStarted: false,
     };
 
     this.getImageDimensionInfo = this.getImageDimensionInfo.bind(this);
@@ -122,11 +126,7 @@ class ShapeEditor extends Component {
       dragStartCoordinates.x === dragCurrentCoordinates.x ||
       dragStartCoordinates.y === dragCurrentCoordinates.y
     ) {
-      this.setState({
-        dragStartCoordinates: null,
-        dragCurrentCoordinates: null,
-        hasDragStarted: false,
-      });
+      this.setState(defaultDragState);
       return;
     }
 
@@ -135,16 +135,9 @@ class ShapeEditor extends Component {
       dragCurrentCoordinates
     );
 
-    this.setState(
-      {
-        dragStartCoordinates: null,
-        dragCurrentCoordinates: null,
-        hasDragStarted: false,
-      },
-      () => {
-        this.props.onAddShape(newRect);
-      }
-    );
+    this.setState(defaultDragState, () => {
+      this.props.onAddShape(newRect);
+    });
   }
 
   render() {
@@ -153,6 +146,7 @@ class ShapeEditor extends Component {
       constrainMove,
       constrainResize,
       disableDrawMode,
+      DrawPreviewComponent,
       planeImageSrc,
       scale,
     } = this.props;
@@ -230,7 +224,7 @@ class ShapeEditor extends Component {
               })
             )}
             {hasDragStarted && (
-              <DraggedOne
+              <DrawPreviewComponent
                 height={draggedRect.height}
                 disabled
                 scale={scale}
@@ -253,6 +247,7 @@ ShapeEditor.propTypes = {
   constrainMove: PropTypes.func,
   constrainResize: PropTypes.func,
   disableDrawMode: PropTypes.bool,
+  DrawPreviewComponent: PropTypes.func,
   onAddShape: PropTypes.func.isRequired,
   planeImageSrc: PropTypes.string.isRequired,
   scale: PropTypes.number,
@@ -263,6 +258,7 @@ ShapeEditor.defaultProps = {
   constrainMove: ({ x, y }) => ({ x, y }),
   constrainResize: ({ movingCorner }) => movingCorner,
   disableDrawMode: false,
+  DrawPreviewComponent: DefaultDrawComponent,
   scale: 1,
 };
 
