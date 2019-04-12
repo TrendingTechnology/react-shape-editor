@@ -49,7 +49,8 @@ class ShapeEditor extends Component {
     if (newChildrenKeys.length > 0) {
       this.nextChildRefs[newChildrenKeys[0]].forceFocus();
     }
-    this.childRefs = { ...this.nextChildRefs };
+    this.childRefs = this.nextChildRefs;
+    this.nextChildRefs = {};
   }
 
   componentWillUnmount() {

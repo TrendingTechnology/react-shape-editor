@@ -192,7 +192,16 @@ function wrapShape(WrappedComponent) {
     }
 
     render() {
-      const { scale, isPlaneDragging, ...otherProps } = this.props;
+      const {
+        constrainMove,
+        constrainResize,
+        isPlaneDragging,
+        onChange,
+        onDelete,
+        onKeyDown,
+        scale,
+        ...otherProps
+      } = this.props;
       const {
         active,
         hasDragStarted,
@@ -351,6 +360,29 @@ function wrapShape(WrappedComponent) {
               isDragToMove: true,
             });
           }}
+          onKeyDown={event => {
+            onKeyDown(event);
+
+            // If the user-defined callback called event.preventDefault(),
+            // we consider the event handled
+            if (event.defaultPrevented) {
+              return;
+            }
+
+            let handled = true;
+            switch (event.key) {
+              case 'Backspace':
+                onDelete();
+                break;
+
+              default:
+                handled = false;
+            }
+
+            if (handled) {
+              event.preventDefault();
+            }
+          }}
         >
           <WrappedComponent
             isDragging={hasDragStarted}
@@ -370,6 +402,8 @@ function wrapShape(WrappedComponent) {
     height: PropTypes.number.isRequired,
     isPlaneDragging: PropTypes.bool,
     onChange: PropTypes.func,
+    onDelete: PropTypes.func,
+    onKeyDown: PropTypes.func,
     scale: PropTypes.number,
     width: PropTypes.number.isRequired,
     x: PropTypes.number.isRequired,
@@ -381,6 +415,8 @@ function wrapShape(WrappedComponent) {
     constrainResize: () => {},
     isPlaneDragging: false,
     onChange: () => {},
+    onDelete: () => {},
+    onKeyDown: () => {},
     disabled: false,
     scale: 1,
   };

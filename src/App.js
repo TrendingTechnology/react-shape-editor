@@ -6,7 +6,11 @@ import formImage from './blank.jpg';
 let iterator = 0;
 
 function arrayReplace(arr, index, item) {
-  return [...arr.slice(0, index), item, ...arr.slice(index + 1)];
+  return [
+    ...arr.slice(0, index),
+    ...(Array.isArray(item) ? item : [item]),
+    ...arr.slice(index + 1),
+  ];
 }
 
 class App extends Component {
@@ -80,6 +84,11 @@ class App extends Component {
                       ...item,
                       ...newRect,
                     }),
+                  }));
+                }}
+                onDelete={() => {
+                  this.setState(state => ({
+                    items: arrayReplace(state.items, index, []),
                   }));
                 }}
                 {...otherProps}
