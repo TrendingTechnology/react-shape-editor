@@ -22,6 +22,13 @@ const getPlaneContainer = node => {
   return planeContainer;
 };
 
+// Smooths out some of the hairy issues of dealing with
+// numbers like 19.9999999999245
+const highPrecisionRound = (n, digits = 5) => {
+  const factor = Math.pow(10, digits);
+  return Math.round(n * factor) / factor;
+};
+
 function wrapShape(WrappedComponent) {
   const ItemHOC = class extends React.Component {
     constructor(props) {
@@ -130,8 +137,12 @@ function wrapShape(WrappedComponent) {
       const { scale, constrainMove, width, height } = this.props;
 
       const { top, left } = planeContainer.getBoundingClientRect();
-      const rawX = (event.clientX - left) / scale - dragInnerOffset.x;
-      const rawY = (event.clientY - top) / scale - dragInnerOffset.y;
+      const rawX = highPrecisionRound(
+        (event.clientX - left) / scale - dragInnerOffset.x
+      );
+      const rawY = highPrecisionRound(
+        (event.clientY - top) / scale - dragInnerOffset.y
+      );
       const { x, y } = constrainMove({ x: rawX, y: rawY, width, height });
 
       return { x, y };
@@ -153,8 +164,13 @@ function wrapShape(WrappedComponent) {
       const { scale, constrainResize, width, height } = this.props;
 
       const { top, left } = planeContainer.getBoundingClientRect();
-      const rawX = (event.clientX - left) / scale - dragInnerOffset.x;
-      const rawY = (event.clientY - top) / scale - dragInnerOffset.y;
+      const rawX = highPrecisionRound(
+        (event.clientX - left) / scale - dragInnerOffset.x
+      );
+      const rawY = highPrecisionRound(
+        (event.clientY - top) / scale - dragInnerOffset.y
+      );
+
       const { x, y } = constrainResize({
         startCorner: dragStartCoordinates,
         movingCorner: { x: rawX, y: rawY },
@@ -257,7 +273,7 @@ function wrapShape(WrappedComponent) {
 
                 const movingPoint = movementPoints[movementReferenceCorner];
                 const anchorPoint = anchorPoints[movementReferenceCorner];
-                const coords = this.getParentCoordinatesForResize(
+                const updatedMovingPoint = this.getParentCoordinatesForResize(
                   event,
                   anchorPoint,
                   movingPoint,
@@ -268,7 +284,7 @@ function wrapShape(WrappedComponent) {
                 this.setState({
                   hasDragStarted: true,
                   dragStartCoordinates: anchorPoint,
-                  dragCurrentCoordinates: coords,
+                  dragCurrentCoordinates: updatedMovingPoint,
                   dragInnerOffset,
                   isDragToMove: false,
                   dragLock,
