@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import wrapShape from './wrapShape';
 import { getRectFromCornerCoordinates } from './utils';
 
-const DefaultDrawComponent = wrapShape(() => (
-  <div style={{ background: 'rgba(0,0,255,0.5)', height: '100%' }} />
+const DefaultDrawComponent = wrapShape(({ height, width }) => (
+  <rect fill="rgba(0,0,255,0.5)" height={height} width={width} />
 ));
 
 const defaultDragState = {
@@ -168,17 +168,17 @@ class ShapeEditor extends Component {
         style={{ overflow: 'auto', height: '100%', userSelect: 'none' }}
       >
         {planeImageSrc ? (
-          <div
+          <svg
             data-is-plane-container
             className="rse-plane-container"
             style={{
               backgroundImage: `url(${planeImageSrc})`,
               backgroundSize: 'cover',
-              height: planeHeight * scale,
-              width: planeWidth * scale,
-              position: 'relative',
               overflow: 'hidden',
             }}
+            width={planeWidth * scale}
+            height={planeHeight * scale}
+            viewBox={`0 0 ${planeWidth} ${planeHeight}`}
             onMouseDown={event => {
               if (disableDrawMode) {
                 return;
@@ -228,7 +228,7 @@ class ShapeEditor extends Component {
                 y={draggedRect.y}
               />
             )}
-          </div>
+          </svg>
         ) : (
           'no image found'
         )}

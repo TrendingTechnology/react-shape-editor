@@ -250,14 +250,19 @@ function wrapShape(WrappedComponent) {
 
     render() {
       const {
+        // props extracted here are not passed to child
         constrainMove,
         constrainResize,
         isPlaneDragging,
         onChange,
         onDelete,
         onKeyDown,
-        scale,
         ...otherProps
+      } = this.props;
+      const {
+        // props extracted here are still passed to the child
+        scale,
+        disabled,
       } = this.props;
       const {
         active,
@@ -280,20 +285,30 @@ function wrapShape(WrappedComponent) {
           ? this.props.y + this.props.height
           : Math.max(dragStartCoordinates.y, dragCurrentCoordinates.y),
       };
+      const width = sides.right - sides.left;
+      const height = sides.bottom - sides.top;
 
       const SPACIOUS_PIXELS = 20;
+      const cornerSize = SPACIOUS_PIXELS / 2 / scale;
       const hasSpaciousVertical =
         (sides.bottom - sides.top) * scale > SPACIOUS_PIXELS;
       const hasSpaciousHorizontal =
         (sides.right - sides.left) * scale > SPACIOUS_PIXELS;
       const handles = [
-        hasSpaciousHorizontal && ['n', 'ne', 'ns-resize', '50%', 0, 'x'],
-        ['ne', 'ne', 'nesw-resize', '100%', 0, null],
-        hasSpaciousVertical && ['e', 'se', 'ew-resize', '100%', '50%', 'y'],
-        ['se', 'se', 'nwse-resize', '100%', '100%', null],
-        hasSpaciousHorizontal && ['s', 'sw', 'ns-resize', '50%', '100%', 'x'],
-        ['sw', 'sw', 'nesw-resize', 0, '100%', null],
-        hasSpaciousVertical && ['w', 'nw', 'ew-resize', 0, '50%', 'y'],
+        hasSpaciousHorizontal && ['n', 'ne', 'ns-resize', width / 2, 0, 'x'],
+        ['ne', 'ne', 'nesw-resize', width, 0, null],
+        hasSpaciousVertical && ['e', 'se', 'ew-resize', width, height / 2, 'y'],
+        ['se', 'se', 'nwse-resize', width, height, null],
+        hasSpaciousHorizontal && [
+          's',
+          'sw',
+          'ns-resize',
+          width / 2,
+          height,
+          'x',
+        ],
+        ['sw', 'sw', 'nesw-resize', 0, height, null],
+        hasSpaciousVertical && ['w', 'nw', 'ew-resize', 0, height / 2, 'y'],
         ['nw', 'nw', 'nwse-resize', 0, 0, null],
       ]
         .filter(a => a)
@@ -302,24 +317,21 @@ function wrapShape(WrappedComponent) {
             [handleName, movementReferenceCorner, cursor, left, top, dragLock],
             index
           ) => (
-            <div
+            <rect
               key={handleName}
+              x={left - cornerSize / 2}
+              y={top - cornerSize / 2}
+              width={cornerSize}
+              height={cornerSize}
+              strokeWidth={1 / scale}
               style={{
                 ...(active
-                  ? { background: 'rgba(255,0,0,0.8)' }
+                  ? { fill: 'rgba(255,0,0,0.8)', stroke: 'rgba(255,0,0,0.8)' }
                   : {
-                      background: 'rgba(255,0,0,0.2)',
-                      border: 'solid rgba(255,0,0,0.3) 1px',
+                      fill: 'rgba(255,0,0,0.2)',
+                      stroke: 'rgba(255,0,0,0.3)',
                     }),
-                position: 'absolute',
-                width: SPACIOUS_PIXELS / 2,
-                height: SPACIOUS_PIXELS / 2,
-                top,
-                left,
                 cursor,
-                // Note: the dragInnerOffset calculation is dependent on this transform
-                // (which simulates center-origin)
-                transform: 'translate(-50%, -50%)',
               }}
               onMouseDown={event => {
                 event.stopPropagation();
@@ -373,24 +385,18 @@ function wrapShape(WrappedComponent) {
         );
 
       return (
-        <div
+        <g
           className="rse-shape-wrapper"
+          transform={`translate(${sides.left},${sides.top})`}
           style={{
-            boxSizing: 'border-box',
-            height: (sides.bottom - sides.top) * scale,
-            width: (sides.right - sides.left) * scale,
-            position: 'absolute',
-            top: sides.top * scale,
-            left: sides.left * scale,
             cursor: 'move',
             outline: 'none',
-            pointerEvents:
-              this.props.disabled || isPlaneDragging ? 'none' : 'auto',
+            pointerEvents: disabled || isPlaneDragging ? 'none' : 'auto',
           }}
           ref={el => {
             this.wrapperEl = el;
           }}
-          tabIndex={!this.props.disabled ? 0 : undefined}
+          tabIndex={!disabled ? 0 : undefined}
           onFocus={() => this.setState({ active: true })}
           onBlur={() => this.setState({ active: false })}
           onMouseDown={event => {
@@ -460,9 +466,11 @@ function wrapShape(WrappedComponent) {
             isDragging={hasDragStarted}
             active={active}
             {...otherProps}
+            width={width}
+            height={height}
           />
-          {!this.props.disabled && handles}
-        </div>
+          {!disabled && handles}
+        </g>
       );
     }
   };

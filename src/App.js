@@ -19,7 +19,13 @@ class App extends Component {
 
     this.state = {
       scale: 0.75,
-      items: [{ id: 1, x: 302, y: 200, width: 150, height: 125 }],
+      items: [...new Array(50)].map((_, index) => ({
+        id: index,
+        x: Math.random() * 1500,
+        y: Math.random() * 1500,
+        width: 150,
+        height: 125,
+      })),
     };
   }
 
@@ -44,7 +50,6 @@ class App extends Component {
             height: 400,
             margin: 20,
             border: 'solid gray 2px',
-            boxSizing: 'border-box',
           }}
         >
           <ShapeEditor
