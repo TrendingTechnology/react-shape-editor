@@ -149,18 +149,19 @@ class ShapeEditor extends Component {
 
   render() {
     const {
-      planeImageSrc,
       children,
-      scale,
       constrainMove,
       constrainResize,
+      disableDrawMode,
+      planeImageSrc,
+      scale,
     } = this.props;
     const {
-      hasDragStarted,
-      dragStartCoordinates,
       dragCurrentCoordinates,
-      planeWidth,
+      dragStartCoordinates,
+      hasDragStarted,
       planeHeight,
+      planeWidth,
     } = this.state;
     const { scaledWidth, scaledHeight } = this.getScaledDimensions();
 
@@ -194,6 +195,10 @@ class ShapeEditor extends Component {
               overflow: 'hidden',
             }}
             onMouseDown={event => {
+              if (disableDrawMode) {
+                return;
+              }
+
               const startCoordinates = this.getCoordinatesFromEvent(
                 event,
                 true
@@ -248,6 +253,7 @@ ShapeEditor.propTypes = {
   children: PropTypes.node,
   constrainMove: PropTypes.func,
   constrainResize: PropTypes.func,
+  disableDrawMode: PropTypes.bool,
   onAddShape: PropTypes.func.isRequired,
   planeImageSrc: PropTypes.string.isRequired,
   scale: PropTypes.number,
@@ -257,6 +263,7 @@ ShapeEditor.defaultProps = {
   children: null,
   constrainMove: ({ x, y }) => ({ x, y }),
   constrainResize: ({ movingCorner }) => movingCorner,
+  disableDrawMode: false,
   scale: 1,
 };
 
