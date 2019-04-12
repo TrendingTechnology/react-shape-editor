@@ -253,7 +253,7 @@ function wrapShape(WrappedComponent) {
         // props extracted here are not passed to child
         constrainMove,
         constrainResize,
-        isPlaneDragging,
+        isDrawing,
         onChange,
         onDelete,
         onKeyDown,
@@ -391,7 +391,7 @@ function wrapShape(WrappedComponent) {
           style={{
             cursor: 'move',
             outline: 'none',
-            pointerEvents: disabled || isPlaneDragging ? 'none' : 'auto',
+            pointerEvents: disabled || isDrawing ? 'none' : 'auto',
           }}
           ref={el => {
             this.wrapperEl = el;
@@ -480,7 +480,7 @@ function wrapShape(WrappedComponent) {
     constrainResize: PropTypes.func,
     disabled: PropTypes.bool,
     height: PropTypes.number.isRequired,
-    isPlaneDragging: PropTypes.bool,
+    isDrawing: PropTypes.bool,
     keyboardTransformMultiplier: PropTypes.number,
     onChange: PropTypes.func,
     onDelete: PropTypes.func,
@@ -494,7 +494,7 @@ function wrapShape(WrappedComponent) {
   ItemHOC.defaultProps = {
     constrainMove: () => {},
     constrainResize: () => {},
-    isPlaneDragging: false,
+    isDrawing: false,
     keyboardTransformMultiplier: 1,
     onChange: () => {},
     onDelete: () => {},

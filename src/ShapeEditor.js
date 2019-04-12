@@ -1,39 +1,29 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import wrapShape from './wrapShape';
-import { getRectFromCornerCoordinates } from './utils';
+import DrawLayer from './DrawLayer';
 
 const DefaultDrawComponent = wrapShape(({ height, width }) => (
   <rect fill="rgba(0,0,255,0.5)" height={height} width={width} />
 ));
-
-const defaultDragState = {
-  hasDragStarted: false,
-  dragStartCoordinates: null,
-  dragCurrentCoordinates: null,
-};
 
 class ShapeEditor extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      ...defaultDragState,
       planeWidth: 0,
       planeHeight: 0,
+      isDrawing: false,
     };
     this.childRefs = {};
     this.nextChildRefs = {};
 
     this.getImageDimensionInfo = this.getImageDimensionInfo.bind(this);
-    this.getCoordinatesFromEvent = this.getCoordinatesFromEvent.bind(this);
-    this.onDragFinish = this.onDragFinish.bind(this);
   }
 
   componentDidMount() {
     this.getImageDimensionInfo();
-
-    window.addEventListener('mouseup', this.onDragFinish);
   }
 
   componentDidUpdate(prevProps) {
@@ -53,7 +43,6 @@ class ShapeEditor extends Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('mouseup', this.onDragFinish);
     this.unmounted = true;
   }
 
@@ -76,62 +65,6 @@ class ShapeEditor extends Component {
     memoryImage.src = this.props.planeImageSrc;
   }
 
-  getCoordinatesFromEvent(event, isStartEvent = false) {
-    const { scale, constrainResize, constrainMove } = this.props;
-    const { dragStartCoordinates, planeWidth, planeHeight } = this.state;
-
-    const { top, left } = event.target.getBoundingClientRect();
-    const rawX = (event.clientX - left) / scale;
-    const rawY = (event.clientY - top) / scale;
-
-    if (isStartEvent) {
-      const { x, y } = constrainMove({
-        x: rawX,
-        y: rawY,
-        width: 0,
-        height: 0,
-        planeWidth,
-        planeHeight,
-      });
-
-      return { x, y };
-    }
-
-    const { x, y } = constrainResize({
-      startCorner: dragStartCoordinates,
-      movingCorner: { x: rawX, y: rawY },
-      lockedDimension: null,
-      planeWidth,
-      planeHeight,
-    });
-
-    return { x, y };
-  }
-
-  onDragFinish(event) {
-    if (!this.state.hasDragStarted) {
-      return;
-    }
-
-    const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
-    if (
-      dragStartCoordinates.x === dragCurrentCoordinates.x ||
-      dragStartCoordinates.y === dragCurrentCoordinates.y
-    ) {
-      this.setState(defaultDragState);
-      return;
-    }
-
-    const newRect = getRectFromCornerCoordinates(
-      dragStartCoordinates,
-      dragCurrentCoordinates
-    );
-
-    this.setState(defaultDragState, () => {
-      this.props.onAddShape(newRect);
-    });
-  }
-
   render() {
     const {
       children,
@@ -141,21 +74,9 @@ class ShapeEditor extends Component {
       DrawPreviewComponent,
       planeImageSrc,
       scale,
+      onAddShape,
     } = this.props;
-    const {
-      dragCurrentCoordinates,
-      dragStartCoordinates,
-      hasDragStarted,
-      planeHeight,
-      planeWidth,
-    } = this.state;
-
-    const draggedRect = hasDragStarted
-      ? getRectFromCornerCoordinates(
-          dragStartCoordinates,
-          dragCurrentCoordinates
-        )
-      : null;
+    const { isDrawing, planeHeight, planeWidth } = this.state;
 
     const childConstrainMove = rect =>
       constrainMove({ ...rect, planeWidth, planeHeight });
@@ -179,51 +100,30 @@ class ShapeEditor extends Component {
         width={planeWidth * scale}
         height={planeHeight * scale}
         viewBox={`0 0 ${planeWidth} ${planeHeight}`}
-        onMouseDown={event => {
-          if (disableDrawMode) {
-            return;
-          }
-
-          const startCoordinates = this.getCoordinatesFromEvent(event, true);
-          this.setState({
-            hasDragStarted: true,
-            dragStartCoordinates: startCoordinates,
-            dragCurrentCoordinates: startCoordinates,
-          });
-        }}
-        onMouseMove={event => {
-          if (!hasDragStarted) {
-            return;
-          }
-
-          const currentCoordinates = this.getCoordinatesFromEvent(event);
-
-          this.setState({
-            dragCurrentCoordinates: currentCoordinates,
-          });
-        }}
       >
+        {!disableDrawMode && (
+          <DrawLayer
+            DrawPreviewComponent={DrawPreviewComponent}
+            planeWidth={planeWidth}
+            planeHeight={planeHeight}
+            onAddShape={onAddShape}
+            scale={scale}
+            constrainResize={constrainResize}
+            constrainMove={constrainMove}
+            setIsDrawing={isD => this.setState({ isDrawing: isD })}
+            isDrawing={isDrawing}
+          />
+        )}
         {React.Children.map(children, (child, i) =>
           React.cloneElement(child, {
             constrainMove: childConstrainMove,
             constrainResize: childConstrainResize,
             scale,
-            isPlaneDragging: hasDragStarted,
+            isDrawing,
             ref: reactObj => {
               this.nextChildRefs[child.key] = reactObj;
             },
           })
-        )}
-
-        {hasDragStarted && (
-          <DrawPreviewComponent
-            height={draggedRect.height}
-            disabled
-            scale={scale}
-            width={draggedRect.width}
-            x={draggedRect.x}
-            y={draggedRect.y}
-          />
         )}
       </svg>
     );
@@ -236,7 +136,7 @@ ShapeEditor.propTypes = {
   constrainResize: PropTypes.func,
   disableDrawMode: PropTypes.bool,
   DrawPreviewComponent: PropTypes.func,
-  onAddShape: PropTypes.func.isRequired,
+  onAddShape: PropTypes.func,
   planeImageSrc: PropTypes.string.isRequired,
   scale: PropTypes.number,
 };
@@ -245,6 +145,7 @@ ShapeEditor.defaultProps = {
   children: null,
   constrainMove: ({ x, y }) => ({ x, y }),
   constrainResize: ({ movingCorner }) => movingCorner,
+  onAddShape: () => {},
   disableDrawMode: false,
   DrawPreviewComponent: DefaultDrawComponent,
   scale: 1,
