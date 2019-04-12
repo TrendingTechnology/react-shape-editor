@@ -226,18 +226,17 @@ class ShapeEditor extends Component {
                 constrainMove: childConstrainMove,
                 constrainResize: childConstrainResize,
                 scale,
-                pointerEvents: hasDragStarted ? 'none' : 'auto',
+                isPlaneDragging: hasDragStarted,
               })
             )}
             {hasDragStarted && (
               <DraggedOne
+                height={draggedRect.height}
+                disabled
+                scale={scale}
+                width={draggedRect.width}
                 x={draggedRect.x}
                 y={draggedRect.y}
-                width={draggedRect.width}
-                height={draggedRect.height}
-                scale={scale}
-                pointerEvents="none"
-                onChange={() => {}}
               />
             )}
           </div>

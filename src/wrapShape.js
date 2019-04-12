@@ -186,7 +186,7 @@ function wrapShape(WrappedComponent) {
     }
 
     render() {
-      const { scale, pointerEvents, ...otherProps } = this.props;
+      const { scale, isPlaneDragging, ...otherProps } = this.props;
       const {
         hasDragStarted,
         dragStartCoordinates,
@@ -305,7 +305,8 @@ function wrapShape(WrappedComponent) {
             top: sides.top * scale,
             left: sides.left * scale,
             cursor: 'move',
-            pointerEvents,
+            pointerEvents:
+              this.props.disabled || isPlaneDragging ? 'none' : 'auto',
           }}
           onMouseDown={event => {
             event.stopPropagation();
@@ -332,8 +333,8 @@ function wrapShape(WrappedComponent) {
             });
           }}
         >
-          <WrappedComponent {...otherProps} />
-          {handles}
+          <WrappedComponent isDragging={hasDragStarted} {...otherProps} />
+          {!this.props.disabled && handles}
         </div>
       );
     }
@@ -342,20 +343,23 @@ function wrapShape(WrappedComponent) {
   ItemHOC.propTypes = {
     constrainMove: PropTypes.func,
     constrainResize: PropTypes.func,
+    disabled: PropTypes.bool,
+    height: PropTypes.number.isRequired,
+    isPlaneDragging: PropTypes.bool,
+    onChange: PropTypes.func,
     scale: PropTypes.number,
     width: PropTypes.number.isRequired,
-    height: PropTypes.number.isRequired,
     x: PropTypes.number.isRequired,
     y: PropTypes.number.isRequired,
-    onChange: PropTypes.func.isRequired,
-    pointerEvents: PropTypes.string,
   };
 
   ItemHOC.defaultProps = {
     constrainMove: () => {},
     constrainResize: () => {},
+    isPlaneDragging: false,
+    onChange: () => {},
+    disabled: false,
     scale: 1,
-    pointerEvents: 'auto',
   };
 
   return ItemHOC;
