@@ -37,6 +37,7 @@ function wrapShape(WrappedComponent) {
       this.state = {
         ...defaultDragState,
         isDragToMove: true,
+        active: false,
       };
 
       this.onMouseUp = this.onMouseUp.bind(this);
@@ -47,6 +48,7 @@ function wrapShape(WrappedComponent) {
       this.getParentCoordinatesForResize = this.getParentCoordinatesForResize.bind(
         this
       );
+      this.forceFocus = this.forceFocus.bind(this);
     }
 
     componentDidMount() {
@@ -185,9 +187,14 @@ function wrapShape(WrappedComponent) {
       };
     }
 
+    forceFocus() {
+      this.wrapperEl.focus();
+    }
+
     render() {
       const { scale, isPlaneDragging, ...otherProps } = this.props;
       const {
+        active,
         hasDragStarted,
         dragStartCoordinates,
         dragCurrentCoordinates,
@@ -232,8 +239,13 @@ function wrapShape(WrappedComponent) {
             <div
               key={handleName}
               style={{
+                ...(active
+                  ? { background: 'rgba(255,0,0,0.8)' }
+                  : {
+                      background: 'rgba(255,0,0,0.2)',
+                      border: 'solid rgba(255,0,0,0.3) 1px',
+                    }),
                 position: 'absolute',
-                background: 'rgba(255,0,0,0.8)',
                 width: SPACIOUS_PIXELS / 2,
                 height: SPACIOUS_PIXELS / 2,
                 top,
@@ -305,9 +317,16 @@ function wrapShape(WrappedComponent) {
             top: sides.top * scale,
             left: sides.left * scale,
             cursor: 'move',
+            outline: 'none',
             pointerEvents:
               this.props.disabled || isPlaneDragging ? 'none' : 'auto',
           }}
+          ref={el => {
+            this.wrapperEl = el;
+          }}
+          tabIndex={!this.props.disabled ? 0 : undefined}
+          onFocus={() => this.setState({ active: true })}
+          onBlur={() => this.setState({ active: false })}
           onMouseDown={event => {
             event.stopPropagation();
             const { top, left } = event.target.getBoundingClientRect();
@@ -333,7 +352,11 @@ function wrapShape(WrappedComponent) {
             });
           }}
         >
-          <WrappedComponent isDragging={hasDragStarted} {...otherProps} />
+          <WrappedComponent
+            isDragging={hasDragStarted}
+            active={active}
+            {...otherProps}
+          />
           {!this.props.disabled && handles}
         </div>
       );

@@ -22,6 +22,8 @@ class ShapeEditor extends Component {
       planeWidth: 0,
       planeHeight: 0,
     };
+    this.childRefs = {};
+    this.nextChildRefs = {};
 
     this.getImageDimensionInfo = this.getImageDimensionInfo.bind(this);
     this.getScaledDimensions = this.getScaledDimensions.bind(this);
@@ -39,6 +41,15 @@ class ShapeEditor extends Component {
     if (prevProps.planeImageSrc !== this.props.planeImageSrc) {
       this.getImageDimensionInfo();
     }
+
+    // Focus on newly added children
+    const newChildrenKeys = Object.keys(this.nextChildRefs).filter(
+      key => !this.childRefs[key]
+    );
+    if (newChildrenKeys.length > 0) {
+      this.nextChildRefs[newChildrenKeys[0]].forceFocus();
+    }
+    this.childRefs = { ...this.nextChildRefs };
   }
 
   componentWillUnmount() {
@@ -212,8 +223,12 @@ class ShapeEditor extends Component {
                 constrainResize: childConstrainResize,
                 scale,
                 isPlaneDragging: hasDragStarted,
+                ref: reactObj => {
+                  this.nextChildRefs[child.key] = reactObj;
+                },
               })
             )}
+
             {hasDragStarted && (
               <DrawPreviewComponent
                 height={draggedRect.height}
