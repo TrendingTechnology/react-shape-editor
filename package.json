@@ -1,19 +1,20 @@
 {
   "name": "react-shape-editor",
+  "description": "Simple shape editor component",
   "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "prop-types": "^15.7.2",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-scripts": "2.1.8"
-  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "license" : "MIT",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/fritz-c/react-shape-editor.git"
+  },
+  "homepage": "https://github.com/fritz-c/react-shape-editor#readme",
+  "bugs": "https://github.com/fritz-c/react-shape-editor/issues",
   "eslintConfig": {
     "extends": "react-app"
   },
@@ -22,5 +23,15 @@
     "not dead",
     "not ie < 11",
     "not op_mini all"
+  ],
+  "dependencies": {
+    "prop-types": "^15.7.2",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "2.1.8"
+  },
+  "keywords": [
+    "react",
+    "react-component"
   ]
 }
