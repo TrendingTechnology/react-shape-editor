@@ -78,6 +78,7 @@ class App extends Component {
                 height={height}
                 x={x}
                 y={y}
+                keyboardTransformMultiplier={5}
                 onChange={newRect => {
                   this.setState(state => ({
                     items: arrayReplace(state.items, index, {

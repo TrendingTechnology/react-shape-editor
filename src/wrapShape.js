@@ -49,6 +49,8 @@ function wrapShape(WrappedComponent) {
         this
       );
       this.forceFocus = this.forceFocus.bind(this);
+      this.keyboardMove = this.keyboardMove.bind(this);
+      this.keyboardResize = this.keyboardResize.bind(this);
     }
 
     componentDidMount() {
@@ -185,6 +187,60 @@ function wrapShape(WrappedComponent) {
         x: dragLock !== 'x' ? x : dragCurrentCoordinates.x,
         y: dragLock !== 'y' ? y : dragCurrentCoordinates.y,
       };
+    }
+
+    keyboardMove(dX, dY) {
+      const {
+        x,
+        y,
+        width,
+        height,
+        keyboardTransformMultiplier,
+        constrainMove,
+        onChange,
+      } = this.props;
+
+      const { x: nextX, y: nextY } = constrainMove({
+        x: highPrecisionRound(x + dX * keyboardTransformMultiplier),
+        y: highPrecisionRound(y + dY * keyboardTransformMultiplier),
+        width,
+        height,
+      });
+
+      onChange(
+        {
+          x: nextX,
+          y: nextY,
+          width: this.props.width,
+          height: this.props.height,
+        },
+        this.props
+      );
+    }
+
+    keyboardResize(dX, dY) {
+      const {
+        x,
+        y,
+        width,
+        height,
+        keyboardTransformMultiplier,
+        constrainResize,
+        onChange,
+      } = this.props;
+
+      const { x: nextX, y: nextY } = constrainResize({
+        startCorner: { x, y },
+        movingCorner: {
+          x: highPrecisionRound(x + width + dX * keyboardTransformMultiplier),
+          y: highPrecisionRound(y + height + dY * keyboardTransformMultiplier),
+        },
+      });
+
+      onChange(
+        getRectFromCornerCoordinates({ x, y }, { x: nextX, y: nextY }),
+        this.props
+      );
     }
 
     forceFocus() {
@@ -370,11 +426,26 @@ function wrapShape(WrappedComponent) {
             }
 
             let handled = true;
+            const handleKeyboardTransform = (moveArgs, resizeArgs) =>
+              event.shiftKey
+                ? this.keyboardResize(...resizeArgs)
+                : this.keyboardMove(...moveArgs);
             switch (event.key) {
               case 'Backspace':
                 onDelete();
                 break;
-
+              case 'ArrowUp':
+                handleKeyboardTransform([0, -1], [0, -1]);
+                break;
+              case 'ArrowRight':
+                handleKeyboardTransform([1, 0], [1, 0]);
+                break;
+              case 'ArrowDown':
+                handleKeyboardTransform([0, 1], [0, 1]);
+                break;
+              case 'ArrowLeft':
+                handleKeyboardTransform([-1, 0], [-1, 0]);
+                break;
               default:
                 handled = false;
             }
@@ -401,6 +472,7 @@ function wrapShape(WrappedComponent) {
     disabled: PropTypes.bool,
     height: PropTypes.number.isRequired,
     isPlaneDragging: PropTypes.bool,
+    keyboardTransformMultiplier: PropTypes.number,
     onChange: PropTypes.func,
     onDelete: PropTypes.func,
     onKeyDown: PropTypes.func,
@@ -414,6 +486,7 @@ function wrapShape(WrappedComponent) {
     constrainMove: () => {},
     constrainResize: () => {},
     isPlaneDragging: false,
+    keyboardTransformMultiplier: 1,
     onChange: () => {},
     onDelete: () => {},
     onKeyDown: () => {},
