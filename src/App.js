@@ -50,6 +50,7 @@ class App extends Component {
             height: 400,
             margin: 20,
             border: 'solid gray 2px',
+            overflow: 'auto',
           }}
         >
           <ShapeEditor

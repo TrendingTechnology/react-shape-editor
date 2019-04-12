@@ -162,77 +162,70 @@ class ShapeEditor extends Component {
     const childConstrainResize = args =>
       constrainResize({ ...args, planeWidth, planeHeight });
 
+    if (!planeImageSrc) {
+      return 'no image found';
+    }
+
     return (
-      <div
-        className="rse-outer-container"
-        style={{ overflow: 'auto', height: '100%', userSelect: 'none' }}
+      <svg
+        data-is-plane-container
+        className="rse-plane-container"
+        style={{
+          backgroundImage: `url(${planeImageSrc})`,
+          backgroundSize: 'cover',
+          overflow: 'hidden',
+          userSelect: 'none',
+        }}
+        width={planeWidth * scale}
+        height={planeHeight * scale}
+        viewBox={`0 0 ${planeWidth} ${planeHeight}`}
+        onMouseDown={event => {
+          if (disableDrawMode) {
+            return;
+          }
+
+          const startCoordinates = this.getCoordinatesFromEvent(event, true);
+          this.setState({
+            hasDragStarted: true,
+            dragStartCoordinates: startCoordinates,
+            dragCurrentCoordinates: startCoordinates,
+          });
+        }}
+        onMouseMove={event => {
+          if (!hasDragStarted) {
+            return;
+          }
+
+          const currentCoordinates = this.getCoordinatesFromEvent(event);
+
+          this.setState({
+            dragCurrentCoordinates: currentCoordinates,
+          });
+        }}
       >
-        {planeImageSrc ? (
-          <svg
-            data-is-plane-container
-            className="rse-plane-container"
-            style={{
-              backgroundImage: `url(${planeImageSrc})`,
-              backgroundSize: 'cover',
-              overflow: 'hidden',
-            }}
-            width={planeWidth * scale}
-            height={planeHeight * scale}
-            viewBox={`0 0 ${planeWidth} ${planeHeight}`}
-            onMouseDown={event => {
-              if (disableDrawMode) {
-                return;
-              }
-
-              const startCoordinates = this.getCoordinatesFromEvent(
-                event,
-                true
-              );
-              this.setState({
-                hasDragStarted: true,
-                dragStartCoordinates: startCoordinates,
-                dragCurrentCoordinates: startCoordinates,
-              });
-            }}
-            onMouseMove={event => {
-              if (!hasDragStarted) {
-                return;
-              }
-
-              const currentCoordinates = this.getCoordinatesFromEvent(event);
-
-              this.setState({
-                dragCurrentCoordinates: currentCoordinates,
-              });
-            }}
-          >
-            {React.Children.map(children, (child, i) =>
-              React.cloneElement(child, {
-                constrainMove: childConstrainMove,
-                constrainResize: childConstrainResize,
-                scale,
-                isPlaneDragging: hasDragStarted,
-                ref: reactObj => {
-                  this.nextChildRefs[child.key] = reactObj;
-                },
-              })
-            )}
-
-            {hasDragStarted && (
-              <DrawPreviewComponent
-                height={draggedRect.height}
-                disabled
-                scale={scale}
-                width={draggedRect.width}
-                x={draggedRect.x}
-                y={draggedRect.y}
-              />
-            )}
-          </svg>
-        ) : (
-          'no image found'
+        {React.Children.map(children, (child, i) =>
+          React.cloneElement(child, {
+            constrainMove: childConstrainMove,
+            constrainResize: childConstrainResize,
+            scale,
+            isPlaneDragging: hasDragStarted,
+            ref: reactObj => {
+              this.nextChildRefs[child.key] = reactObj;
+            },
+          })
         )}
-      </div>
+
+        {hasDragStarted && (
+          <DrawPreviewComponent
+            height={draggedRect.height}
+            disabled
+            scale={scale}
+            width={draggedRect.width}
+            x={draggedRect.x}
+            y={draggedRect.y}
+          />
+        )}
+      </svg>
     );
   }
 }
