@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { getRectFromCornerCoordinates } from './utils';
+import { getRectFromCornerCoordinates, getPlaneContainer } from './utils';
 
 const defaultDragState = {
   hasDragStarted: false,
@@ -8,18 +8,6 @@ const defaultDragState = {
   dragCurrentCoordinates: null,
   dragInnerOffset: null,
   dragLock: null,
-};
-
-const getPlaneContainer = node => {
-  let planeContainer = node;
-  while (
-    planeContainer &&
-    (!planeContainer.dataset || !planeContainer.dataset.isPlaneContainer)
-  ) {
-    planeContainer = planeContainer.parentNode;
-  }
-
-  return planeContainer;
 };
 
 // Smooths out some of the hairy issues of dealing with

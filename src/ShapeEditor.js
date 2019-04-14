@@ -20,9 +20,11 @@ class ShapeEditor extends Component {
     this.nextChildRefs = {};
 
     this.getImageDimensionInfo = this.getImageDimensionInfo.bind(this);
+    this.onMouseEvent = this.onMouseEvent.bind(this);
   }
 
   componentDidMount() {
+    window.addEventListener('mouseup', this.onMouseEvent);
     this.getImageDimensionInfo();
   }
 
@@ -43,7 +45,14 @@ class ShapeEditor extends Component {
   }
 
   componentWillUnmount() {
+    window.removeEventListener('mouseup', this.onMouseEvent);
     this.unmounted = true;
+  }
+
+  onMouseEvent(event) {
+    if (this.state.isDrawing && typeof this.delegateEvent === 'function') {
+      this.delegateEvent(event);
+    }
   }
 
   // Load the background image in memory to measure its dimensions
@@ -110,7 +119,10 @@ class ShapeEditor extends Component {
             scale={scale}
             constrainResize={constrainResize}
             constrainMove={constrainMove}
-            setIsDrawing={isD => this.setState({ isDrawing: isD })}
+            setIsDrawing={(isD, delegateEvent) => {
+              this.delegateEvent = delegateEvent;
+              this.setState({ isDrawing: isD });
+            }}
             isDrawing={isDrawing}
           />
         )}
@@ -119,7 +131,7 @@ class ShapeEditor extends Component {
             constrainMove: childConstrainMove,
             constrainResize: childConstrainResize,
             scale,
-            isDrawing,
+            isDrawing: false,
             ref: reactObj => {
               this.nextChildRefs[child.key] = reactObj;
             },

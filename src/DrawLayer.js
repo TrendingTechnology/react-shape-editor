@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { getRectFromCornerCoordinates } from './utils';
+import { getPlaneContainer, getRectFromCornerCoordinates } from './utils';
 
 const defaultDragState = {
   dragStartCoordinates: null,
@@ -16,16 +16,9 @@ class ShapeEditor extends Component {
     };
 
     this.getCoordinatesFromEvent = this.getCoordinatesFromEvent.bind(this);
-    this.onDragFinish = this.onDragFinish.bind(this);
-  }
-
-  componentDidMount() {
-    window.addEventListener('mouseup', this.onDragFinish);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('mouseup', this.onDragFinish);
-    this.unmounted = true;
+    this.onDrawFinish = this.onDrawFinish.bind(this);
+    this.onDraw = this.onDraw.bind(this);
+    this.mouseEventCallback = this.mouseEventCallback.bind(this);
   }
 
   getCoordinatesFromEvent(event, isStartEvent = false) {
@@ -38,7 +31,12 @@ class ShapeEditor extends Component {
     } = this.props;
     const { dragStartCoordinates } = this.state;
 
-    const { top, left } = event.target.getBoundingClientRect();
+    const planeContainer = getPlaneContainer(event.target);
+    if (!planeContainer) {
+      return null;
+    }
+
+    const { top, left } = planeContainer.getBoundingClientRect();
     const rawX = (event.clientX - left) / scale;
     const rawY = (event.clientY - top) / scale;
 
@@ -66,7 +64,7 @@ class ShapeEditor extends Component {
     return { x, y };
   }
 
-  onDragFinish(event) {
+  onDrawFinish(event) {
     if (!this.props.isDrawing) {
       return;
     }
@@ -89,6 +87,27 @@ class ShapeEditor extends Component {
     this.setState(defaultDragState, () => {
       this.props.onAddShape(newRect);
     });
+  }
+
+  onDraw(event) {
+    if (!this.props.isDrawing) {
+      return;
+    }
+
+    this.setState({
+      dragCurrentCoordinates: this.getCoordinatesFromEvent(event),
+    });
+  }
+
+  mouseEventCallback(event) {
+    if (event.type === 'mousemove') {
+      this.onDraw(event);
+      return;
+    }
+    if (event.type === 'mouseup') {
+      this.onDrawFinish(event);
+      return;
+    }
   }
 
   render() {
@@ -123,16 +142,7 @@ class ShapeEditor extends Component {
               dragStartCoordinates: startCoordinates,
               dragCurrentCoordinates: startCoordinates,
             });
-            setIsDrawing(true);
-          }}
-          onMouseMove={event => {
-            if (!isDrawing) {
-              return;
-            }
-
-            this.setState({
-              dragCurrentCoordinates: this.getCoordinatesFromEvent(event),
-            });
+            setIsDrawing(true, this.mouseEventCallback);
           }}
         />
         {isDrawing && (
