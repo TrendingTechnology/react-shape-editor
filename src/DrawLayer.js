@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { getPlaneContainer, getRectFromCornerCoordinates } from './utils';
+import { getRectFromCornerCoordinates } from './utils';
 
 const defaultDragState = {
   dragStartCoordinates: null,
@@ -18,27 +18,19 @@ class ShapeEditor extends Component {
     this.getCoordinatesFromEvent = this.getCoordinatesFromEvent.bind(this);
     this.onDrawFinish = this.onDrawFinish.bind(this);
     this.onDraw = this.onDraw.bind(this);
-    this.mouseEventCallback = this.mouseEventCallback.bind(this);
+    this.mouseHandler = this.mouseHandler.bind(this);
   }
 
   getCoordinatesFromEvent(event, isStartEvent = false) {
     const {
-      scale,
       constrainResize,
       constrainMove,
+      getPlaneCoordinatesFromEvent,
       planeWidth,
       planeHeight,
     } = this.props;
     const { dragStartCoordinates } = this.state;
-
-    const planeContainer = getPlaneContainer(event.target);
-    if (!planeContainer) {
-      return null;
-    }
-
-    const { top, left } = planeContainer.getBoundingClientRect();
-    const rawX = (event.clientX - left) / scale;
-    const rawY = (event.clientY - top) / scale;
+    const { x: rawX, y: rawY } = getPlaneCoordinatesFromEvent(event);
 
     if (isStartEvent) {
       const { x, y } = constrainMove({
@@ -65,7 +57,7 @@ class ShapeEditor extends Component {
   }
 
   onDrawFinish(event) {
-    if (!this.props.isDrawing) {
+    if (!this.props.isMouseDown) {
       return;
     }
 
@@ -74,6 +66,7 @@ class ShapeEditor extends Component {
       dragStartCoordinates.x === dragCurrentCoordinates.x ||
       dragStartCoordinates.y === dragCurrentCoordinates.y
     ) {
+      this.props.setMouseHandling(false);
       this.setState(defaultDragState);
       return;
     }
@@ -83,14 +76,14 @@ class ShapeEditor extends Component {
       dragCurrentCoordinates
     );
 
-    this.props.setIsDrawing(false);
+    this.props.setMouseHandling(false);
     this.setState(defaultDragState, () => {
       this.props.onAddShape(newRect);
     });
   }
 
   onDraw(event) {
-    if (!this.props.isDrawing) {
+    if (!this.props.isMouseDown) {
       return;
     }
 
@@ -99,7 +92,7 @@ class ShapeEditor extends Component {
     });
   }
 
-  mouseEventCallback(event) {
+  mouseHandler(event) {
     if (event.type === 'mousemove') {
       this.onDraw(event);
       return;
@@ -116,12 +109,12 @@ class ShapeEditor extends Component {
       planeHeight,
       planeWidth,
       scale,
-      isDrawing,
-      setIsDrawing,
+      isMouseDown,
+      setMouseHandling,
     } = this.props;
     const { dragCurrentCoordinates, dragStartCoordinates } = this.state;
 
-    const draggedRect = isDrawing
+    const draggedRect = isMouseDown
       ? getRectFromCornerCoordinates(
           dragStartCoordinates,
           dragCurrentCoordinates
@@ -137,15 +130,14 @@ class ShapeEditor extends Component {
           fill="transparent"
           onMouseDown={event => {
             const startCoordinates = this.getCoordinatesFromEvent(event, true);
-
             this.setState({
               dragStartCoordinates: startCoordinates,
               dragCurrentCoordinates: startCoordinates,
             });
-            setIsDrawing(true, this.mouseEventCallback);
+            setMouseHandling(true, this.mouseHandler);
           }}
         />
-        {isDrawing && (
+        {isMouseDown && (
           <DrawPreviewComponent
             height={draggedRect.height}
             disabled
@@ -164,12 +156,13 @@ ShapeEditor.propTypes = {
   constrainMove: PropTypes.func.isRequired,
   constrainResize: PropTypes.func.isRequired,
   DrawPreviewComponent: PropTypes.func.isRequired,
-  isDrawing: PropTypes.bool.isRequired,
+  getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
+  isMouseDown: PropTypes.bool.isRequired,
   onAddShape: PropTypes.func.isRequired,
   planeHeight: PropTypes.number.isRequired,
   planeWidth: PropTypes.number.isRequired,
   scale: PropTypes.number.isRequired,
-  setIsDrawing: PropTypes.func.isRequired,
+  setMouseHandling: PropTypes.func.isRequired,
 };
 
 export default ShapeEditor;

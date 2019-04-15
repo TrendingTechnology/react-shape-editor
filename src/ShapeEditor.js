@@ -14,7 +14,7 @@ class ShapeEditor extends Component {
     this.state = {
       planeWidth: 0,
       planeHeight: 0,
-      isDrawing: false,
+      isMouseDown: false,
     };
     this.childRefs = {};
     this.nextChildRefs = {};
@@ -25,6 +25,7 @@ class ShapeEditor extends Component {
 
   componentDidMount() {
     window.addEventListener('mouseup', this.onMouseEvent);
+    window.addEventListener('mousemove', this.onMouseEvent);
     this.getImageDimensionInfo();
   }
 
@@ -46,12 +47,13 @@ class ShapeEditor extends Component {
 
   componentWillUnmount() {
     window.removeEventListener('mouseup', this.onMouseEvent);
+    window.removeEventListener('mousemove', this.onMouseEvent);
     this.unmounted = true;
   }
 
   onMouseEvent(event) {
-    if (this.state.isDrawing && typeof this.delegateEvent === 'function') {
-      this.delegateEvent(event);
+    if (this.state.isMouseDown && typeof this.mouseHandler === 'function') {
+      this.mouseHandler(event);
     }
   }
 
@@ -85,7 +87,7 @@ class ShapeEditor extends Component {
       scale,
       onAddShape,
     } = this.props;
-    const { isDrawing, planeHeight, planeWidth } = this.state;
+    const { isMouseDown, planeHeight, planeWidth } = this.state;
 
     const childConstrainMove = rect =>
       constrainMove({ ...rect, planeWidth, planeHeight });
@@ -109,6 +111,9 @@ class ShapeEditor extends Component {
         width={planeWidth * scale}
         height={planeHeight * scale}
         viewBox={`0 0 ${planeWidth} ${planeHeight}`}
+        ref={el => {
+          this.svgEl = el;
+        }}
       >
         {!disableDrawMode && (
           <DrawLayer
@@ -119,11 +124,19 @@ class ShapeEditor extends Component {
             scale={scale}
             constrainResize={constrainResize}
             constrainMove={constrainMove}
-            setIsDrawing={(isD, delegateEvent) => {
-              this.delegateEvent = delegateEvent;
-              this.setState({ isDrawing: isD });
+            setMouseHandling={(isD, mouseHandler) => {
+              this.mouseHandler = mouseHandler;
+              this.setState({ isMouseDown: isD });
             }}
-            isDrawing={isDrawing}
+            getPlaneCoordinatesFromEvent={event => {
+              const { top, left } = this.svgEl.getBoundingClientRect();
+
+              return {
+                x: (event.clientX - left) / scale,
+                y: (event.clientY - top) / scale,
+              };
+            }}
+            isMouseDown={isMouseDown}
           />
         )}
         {React.Children.map(children, (child, i) =>
@@ -131,7 +144,7 @@ class ShapeEditor extends Component {
             constrainMove: childConstrainMove,
             constrainResize: childConstrainResize,
             scale,
-            isDrawing: false,
+            isMouseDown: false,
             ref: reactObj => {
               this.nextChildRefs[child.key] = reactObj;
             },
