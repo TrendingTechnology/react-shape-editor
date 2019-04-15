@@ -7,13 +7,6 @@ const DefaultDrawComponent = wrapShape(({ height, width }) => (
   <rect fill="rgba(0,0,255,0.5)" height={height} width={width} />
 ));
 
-// Smooths out some of the hairy issues of dealing with
-// numbers like 19.9999999999245
-const highPrecisionRound = (n, digits = 1) => {
-  const factor = Math.pow(10, digits);
-  return Math.round(n * factor) / factor;
-};
-
 class ShapeEditor extends Component {
   constructor(props) {
     super(props);
@@ -71,8 +64,8 @@ class ShapeEditor extends Component {
     const { top, left } = this.svgEl.getBoundingClientRect();
 
     return {
-      x: highPrecisionRound((event.clientX - left - offsetX) / scale),
-      y: highPrecisionRound((event.clientY - top - offsetY) / scale),
+      x: (event.clientX - left) / scale - offsetX,
+      y: (event.clientY - top) / scale - offsetY,
     };
   }
 

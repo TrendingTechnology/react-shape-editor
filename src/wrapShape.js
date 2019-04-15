@@ -115,22 +115,28 @@ function wrapShape(WrappedComponent) {
       }
     }
 
-    getParentCoordinatesForMove(
-      event,
-      dragInnerOffset = this.state.dragInnerOffset
-    ) {
+    getParentCoordinatesForMove(event) {
       const {
         constrainMove,
         width,
         height,
         getPlaneCoordinatesFromEvent,
       } = this.props;
+      const { dragCurrentCoordinates, dragInnerOffset } = this.state;
+
       const { x: rawX, y: rawY } = getPlaneCoordinatesFromEvent(
         event,
         dragInnerOffset
       );
 
-      const { x, y } = constrainMove({ x: rawX, y: rawY, width, height });
+      const { x, y } = constrainMove({
+        originalX: dragCurrentCoordinates ? dragCurrentCoordinates.x : rawX,
+        originalY: dragCurrentCoordinates ? dragCurrentCoordinates.y : rawY,
+        x: rawX,
+        y: rawY,
+        width,
+        height,
+      });
 
       return { x, y };
     }
@@ -154,6 +160,7 @@ function wrapShape(WrappedComponent) {
       );
 
       const { x, y } = constrainResize({
+        originalMovingCorner: dragCurrentCoordinates,
         startCorner: dragStartCoordinates,
         movingCorner: { x: rawX, y: rawY },
         width,
@@ -179,6 +186,8 @@ function wrapShape(WrappedComponent) {
       } = this.props;
 
       const { x: nextX, y: nextY } = constrainMove({
+        originalX: x,
+        originalY: y,
         x: x + dX * keyboardTransformMultiplier,
         y: y + dY * keyboardTransformMultiplier,
         width,
@@ -208,6 +217,10 @@ function wrapShape(WrappedComponent) {
       } = this.props;
 
       const { x: nextX, y: nextY } = constrainResize({
+        originalMovingCorner: {
+          x: x + width,
+          y: y + height,
+        },
         startCorner: { x, y },
         movingCorner: {
           x: x + width + dX * keyboardTransformMultiplier,
@@ -313,16 +326,6 @@ function wrapShape(WrappedComponent) {
               }}
               onMouseDown={event => {
                 event.stopPropagation();
-                const {
-                  top,
-                  left,
-                  width,
-                  height,
-                } = event.target.getBoundingClientRect();
-                const dragInnerOffset = {
-                  x: event.clientX - left - width / 2,
-                  y: event.clientY - top - height / 2,
-                };
 
                 // The corner of the resize box that moves
                 const movementPoints = {
@@ -341,19 +344,20 @@ function wrapShape(WrappedComponent) {
 
                 const movingPoint = movementPoints[movementReferenceCorner];
                 const anchorPoint = anchorPoints[movementReferenceCorner];
-                const updatedMovingPoint = this.getParentCoordinatesForResize(
-                  event,
-                  anchorPoint,
-                  movingPoint,
-                  dragInnerOffset,
-                  dragLock
+
+                const { x: planeX, y: planeY } = getPlaneCoordinatesFromEvent(
+                  event
                 );
+                const dragInnerOffset = {
+                  x: planeX - movingPoint.x,
+                  y: planeY - movingPoint.y,
+                };
 
                 setMouseHandler(this.mouseHandler);
                 this.setState({
                   isMouseDown: true,
                   dragStartCoordinates: anchorPoint,
-                  dragCurrentCoordinates: updatedMovingPoint,
+                  dragCurrentCoordinates: movingPoint,
                   dragInnerOffset,
                   isDragToMove: false,
                   dragLock,
@@ -380,24 +384,22 @@ function wrapShape(WrappedComponent) {
           onBlur={() => this.setState({ active: false })}
           onMouseDown={event => {
             event.stopPropagation();
-            const { top, left } = event.target.getBoundingClientRect();
-            const dragInnerOffset = {
-              x: event.clientX - left,
-              y: event.clientY - top,
-            };
-
-            const coords = this.getParentCoordinatesForMove(
-              event,
-              dragInnerOffset
+            const { x, y } = this.props;
+            const { x: planeX, y: planeY } = getPlaneCoordinatesFromEvent(
+              event
             );
+            const dragInnerOffset = {
+              x: planeX - x,
+              y: planeY - y,
+            };
 
             setMouseHandler(this.mouseHandler);
             this.setState({
               isMouseDown: true,
-              dragCurrentCoordinates: coords,
+              dragCurrentCoordinates: { x, y },
               dragStartCoordinates: {
-                x: coords.x + this.props.width,
-                y: coords.y + this.props.height,
+                x: x + width,
+                y: y + height,
               },
               dragInnerOffset,
               isDragToMove: true,

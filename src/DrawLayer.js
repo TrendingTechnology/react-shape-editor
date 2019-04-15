@@ -30,11 +30,13 @@ class ShapeEditor extends Component {
       planeWidth,
       planeHeight,
     } = this.props;
-    const { dragStartCoordinates } = this.state;
+    const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
     const { x: rawX, y: rawY } = getPlaneCoordinatesFromEvent(event);
 
     if (isStartEvent) {
       const { x, y } = constrainMove({
+        originalX: rawX,
+        originalY: rawY,
         x: rawX,
         y: rawY,
         width: 0,
@@ -47,6 +49,7 @@ class ShapeEditor extends Component {
     }
 
     const { x, y } = constrainResize({
+      originalMovingCorner: dragCurrentCoordinates,
       startCorner: dragStartCoordinates,
       movingCorner: { x: rawX, y: rawY },
       lockedDimension: null,

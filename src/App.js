@@ -40,6 +40,28 @@ class App extends Component {
     const { scale, items } = this.state;
     const to5 = n => Math.floor(n / 5) * 5;
 
+    const constrainMove = ({
+      x,
+      y,
+      width,
+      height,
+      planeWidth,
+      planeHeight,
+    }) => ({
+      x: to5(Math.min(planeWidth - width, Math.max(0, x))),
+      y: to5(Math.min(planeHeight - height, Math.max(0, y))),
+    });
+    const constrainResize = ({
+      originalMovingCorner,
+      startCorner: { x: startX, y: startY },
+      movingCorner: { x: movingX, y: movingY },
+      planeWidth,
+      planeHeight,
+    }) => ({
+      x: to5(Math.min(planeWidth, Math.max(0, movingX))),
+      y: to5(Math.min(planeHeight, Math.max(0, movingY))),
+    });
+
     return (
       <div>
         <button onClick={() => changeScale(1 / Math.sqrt(2))}>-</button>
@@ -65,30 +87,8 @@ class App extends Component {
               }));
               iterator += 1;
             }}
-            constrainMove={({
-              x,
-              y,
-              width,
-              height,
-              planeWidth,
-              planeHeight,
-            }) => {
-              return {
-                x: to5(Math.min(planeWidth - width, Math.max(0, x))),
-                y: to5(Math.min(planeHeight - height, Math.max(0, y))),
-              };
-            }}
-            constrainResize={({
-              startCorner: { x: startX, y: startY },
-              movingCorner: { x: movingX, y: movingY },
-              planeWidth,
-              planeHeight,
-            }) => {
-              return {
-                x: to5(Math.min(planeWidth, Math.max(0, movingX))),
-                y: to5(Math.min(planeHeight, Math.max(0, movingY))),
-              };
-            }}
+            constrainMove={constrainMove}
+            constrainResize={constrainResize}
           >
             {items.map((item, index) => {
               const { id, width, height, x, y, type, ...otherProps } = item;
