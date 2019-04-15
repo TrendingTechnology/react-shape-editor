@@ -1,20 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { getRectFromCornerCoordinates, getPlaneContainer } from './utils';
+import { getRectFromCornerCoordinates } from './utils';
 
 const defaultDragState = {
-  hasDragStarted: false,
+  isMouseDown: false,
   dragStartCoordinates: null,
   dragCurrentCoordinates: null,
   dragInnerOffset: null,
   dragLock: null,
-};
-
-// Smooths out some of the hairy issues of dealing with
-// numbers like 19.9999999999245
-const highPrecisionRound = (n, digits = 1) => {
-  const factor = Math.pow(10, digits);
-  return Math.round(n * factor) / factor;
 };
 
 function wrapShape(WrappedComponent) {
@@ -39,20 +32,15 @@ function wrapShape(WrappedComponent) {
       this.forceFocus = this.forceFocus.bind(this);
       this.keyboardMove = this.keyboardMove.bind(this);
       this.keyboardResize = this.keyboardResize.bind(this);
-    }
-
-    componentDidMount() {
-      window.addEventListener('mouseup', this.onMouseUp);
-      window.addEventListener('mousemove', this.onMouseMove);
+      this.mouseHandler = this.mouseHandler.bind(this);
     }
 
     componentWillUnmount() {
-      window.removeEventListener('mouseup', this.onMouseUp);
-      window.removeEventListener('mousemove', this.onMouseMove);
+      this.unmounted = true;
     }
 
     onMouseMove(event) {
-      if (!this.state.hasDragStarted) {
+      if (!this.state.isMouseDown || this.unmounted) {
         return;
       }
 
@@ -78,7 +66,7 @@ function wrapShape(WrappedComponent) {
     }
 
     onMouseUp() {
-      if (!this.state.hasDragStarted) {
+      if (!this.state.isMouseDown || this.unmounted) {
         return;
       }
 
@@ -116,24 +104,30 @@ function wrapShape(WrappedComponent) {
       }
     }
 
+    mouseHandler(event) {
+      if (event.type === 'mousemove') {
+        this.onMouseMove(event);
+        return;
+      }
+      if (event.type === 'mouseup') {
+        this.onMouseUp(event);
+        return;
+      }
+    }
+
     getParentCoordinatesForMove(
       event,
       dragInnerOffset = this.state.dragInnerOffset
     ) {
-      // If this event did not take place inside the plane, ignore it
-      const planeContainer = getPlaneContainer(event.target);
-      if (!planeContainer) {
-        return null;
-      }
-
-      const { scale, constrainMove, width, height } = this.props;
-
-      const { top, left } = planeContainer.getBoundingClientRect();
-      const rawX = highPrecisionRound(
-        (event.clientX - left - dragInnerOffset.x) / scale
-      );
-      const rawY = highPrecisionRound(
-        (event.clientY - top - dragInnerOffset.y) / scale
+      const {
+        constrainMove,
+        width,
+        height,
+        getPlaneCoordinatesFromEvent,
+      } = this.props;
+      const { x: rawX, y: rawY } = getPlaneCoordinatesFromEvent(
+        event,
+        dragInnerOffset
       );
 
       const { x, y } = constrainMove({ x: rawX, y: rawY, width, height });
@@ -148,20 +142,15 @@ function wrapShape(WrappedComponent) {
       dragInnerOffset = this.state.dragInnerOffset,
       dragLock = this.state.dragLock
     ) {
-      // If this event did not take place inside the plane, ignore it
-      const planeContainer = getPlaneContainer(event.target);
-      if (!planeContainer) {
-        return null;
-      }
-
-      const { scale, constrainResize, width, height } = this.props;
-
-      const { top, left } = planeContainer.getBoundingClientRect();
-      const rawX = highPrecisionRound(
-        (event.clientX - left - dragInnerOffset.x) / scale
-      );
-      const rawY = highPrecisionRound(
-        (event.clientY - top - dragInnerOffset.y) / scale
+      const {
+        constrainResize,
+        width,
+        height,
+        getPlaneCoordinatesFromEvent,
+      } = this.props;
+      const { x: rawX, y: rawY } = getPlaneCoordinatesFromEvent(
+        event,
+        dragInnerOffset
       );
 
       const { x, y } = constrainResize({
@@ -190,8 +179,8 @@ function wrapShape(WrappedComponent) {
       } = this.props;
 
       const { x: nextX, y: nextY } = constrainMove({
-        x: highPrecisionRound(x + dX * keyboardTransformMultiplier),
-        y: highPrecisionRound(y + dY * keyboardTransformMultiplier),
+        x: x + dX * keyboardTransformMultiplier,
+        y: y + dY * keyboardTransformMultiplier,
         width,
         height,
       });
@@ -221,8 +210,8 @@ function wrapShape(WrappedComponent) {
       const { x: nextX, y: nextY } = constrainResize({
         startCorner: { x, y },
         movingCorner: {
-          x: highPrecisionRound(x + width + dX * keyboardTransformMultiplier),
-          y: highPrecisionRound(y + height + dY * keyboardTransformMultiplier),
+          x: x + width + dX * keyboardTransformMultiplier,
+          y: y + height + dY * keyboardTransformMultiplier,
         },
       });
 
@@ -241,10 +230,11 @@ function wrapShape(WrappedComponent) {
         // props extracted here are not passed to child
         constrainMove,
         constrainResize,
-        isDrawing,
+        getPlaneCoordinatesFromEvent,
         onChange,
         onDelete,
         onKeyDown,
+        setMouseHandler,
         ...otherProps
       } = this.props;
       const {
@@ -254,25 +244,24 @@ function wrapShape(WrappedComponent) {
       } = this.props;
       const {
         active,
-        hasDragStarted,
+        isMouseDown,
         dragStartCoordinates,
         dragCurrentCoordinates,
       } = this.state;
 
-      const sides = {
-        left: !hasDragStarted
-          ? this.props.x
-          : Math.min(dragStartCoordinates.x, dragCurrentCoordinates.x),
-        right: !hasDragStarted
-          ? this.props.x + this.props.width
-          : Math.max(dragStartCoordinates.x, dragCurrentCoordinates.x),
-        top: !hasDragStarted
-          ? this.props.y
-          : Math.min(dragStartCoordinates.y, dragCurrentCoordinates.y),
-        bottom: !hasDragStarted
-          ? this.props.y + this.props.height
-          : Math.max(dragStartCoordinates.y, dragCurrentCoordinates.y),
-      };
+      const sides = !isMouseDown
+        ? {
+            left: this.props.x,
+            right: this.props.x + this.props.width,
+            top: this.props.y,
+            bottom: this.props.y + this.props.height,
+          }
+        : {
+            left: Math.min(dragStartCoordinates.x, dragCurrentCoordinates.x),
+            right: Math.max(dragStartCoordinates.x, dragCurrentCoordinates.x),
+            top: Math.min(dragStartCoordinates.y, dragCurrentCoordinates.y),
+            bottom: Math.max(dragStartCoordinates.y, dragCurrentCoordinates.y),
+          };
       const width = sides.right - sides.left;
       const height = sides.bottom - sides.top;
 
@@ -282,6 +271,7 @@ function wrapShape(WrappedComponent) {
         (sides.bottom - sides.top) * scale > SPACIOUS_PIXELS;
       const hasSpaciousHorizontal =
         (sides.right - sides.left) * scale > SPACIOUS_PIXELS;
+      // Generate drag handles
       const handles = [
         hasSpaciousHorizontal && ['n', 'ne', 'ns-resize', width / 2, 0, 'x'],
         ['ne', 'ne', 'nesw-resize', width, 0, null],
@@ -359,8 +349,9 @@ function wrapShape(WrappedComponent) {
                   dragLock
                 );
 
+                setMouseHandler(this.mouseHandler);
                 this.setState({
-                  hasDragStarted: true,
+                  isMouseDown: true,
                   dragStartCoordinates: anchorPoint,
                   dragCurrentCoordinates: updatedMovingPoint,
                   dragInnerOffset,
@@ -379,7 +370,7 @@ function wrapShape(WrappedComponent) {
           style={{
             cursor: 'move',
             outline: 'none',
-            pointerEvents: disabled || isDrawing ? 'none' : 'auto',
+            pointerEvents: disabled ? 'none' : 'auto',
           }}
           ref={el => {
             this.wrapperEl = el;
@@ -400,8 +391,9 @@ function wrapShape(WrappedComponent) {
               dragInnerOffset
             );
 
+            setMouseHandler(this.mouseHandler);
             this.setState({
-              hasDragStarted: true,
+              isMouseDown: true,
               dragCurrentCoordinates: coords,
               dragStartCoordinates: {
                 x: coords.x + this.props.width,
@@ -451,7 +443,7 @@ function wrapShape(WrappedComponent) {
           }}
         >
           <WrappedComponent
-            isDragging={hasDragStarted}
+            isDragging={isMouseDown}
             active={active}
             {...otherProps}
             width={width}
@@ -467,13 +459,14 @@ function wrapShape(WrappedComponent) {
     constrainMove: PropTypes.func,
     constrainResize: PropTypes.func,
     disabled: PropTypes.bool,
+    getPlaneCoordinatesFromEvent: PropTypes.func,
     height: PropTypes.number.isRequired,
-    isDrawing: PropTypes.bool,
     keyboardTransformMultiplier: PropTypes.number,
     onChange: PropTypes.func,
     onDelete: PropTypes.func,
     onKeyDown: PropTypes.func,
     scale: PropTypes.number,
+    setMouseHandler: PropTypes.func,
     width: PropTypes.number.isRequired,
     x: PropTypes.number.isRequired,
     y: PropTypes.number.isRequired,
@@ -482,13 +475,14 @@ function wrapShape(WrappedComponent) {
   ItemHOC.defaultProps = {
     constrainMove: () => {},
     constrainResize: () => {},
-    isDrawing: false,
+    disabled: false,
+    getPlaneCoordinatesFromEvent: () => {},
     keyboardTransformMultiplier: 1,
     onChange: () => {},
     onDelete: () => {},
     onKeyDown: () => {},
-    disabled: false,
     scale: 1,
+    setMouseHandler: () => {},
   };
 
   return ItemHOC;

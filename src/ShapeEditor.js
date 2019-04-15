@@ -7,6 +7,13 @@ const DefaultDrawComponent = wrapShape(({ height, width }) => (
   <rect fill="rgba(0,0,255,0.5)" height={height} width={width} />
 ));
 
+// Smooths out some of the hairy issues of dealing with
+// numbers like 19.9999999999245
+const highPrecisionRound = (n, digits = 1) => {
+  const factor = Math.pow(10, digits);
+  return Math.round(n * factor) / factor;
+};
+
 class ShapeEditor extends Component {
   constructor(props) {
     super(props);
@@ -14,13 +21,15 @@ class ShapeEditor extends Component {
     this.state = {
       planeWidth: 0,
       planeHeight: 0,
-      isMouseDown: false,
     };
     this.childRefs = {};
     this.nextChildRefs = {};
 
     this.getImageDimensionInfo = this.getImageDimensionInfo.bind(this);
     this.onMouseEvent = this.onMouseEvent.bind(this);
+    this.getPlaneCoordinatesFromEvent = this.getPlaneCoordinatesFromEvent.bind(
+      this
+    );
   }
 
   componentDidMount() {
@@ -52,9 +61,19 @@ class ShapeEditor extends Component {
   }
 
   onMouseEvent(event) {
-    if (this.state.isMouseDown && typeof this.mouseHandler === 'function') {
+    if (typeof this.mouseHandler === 'function') {
       this.mouseHandler(event);
     }
+  }
+
+  getPlaneCoordinatesFromEvent(event, { x: offsetX = 0, y: offsetY = 0 } = {}) {
+    const { scale } = this.props;
+    const { top, left } = this.svgEl.getBoundingClientRect();
+
+    return {
+      x: highPrecisionRound((event.clientX - left - offsetX) / scale),
+      y: highPrecisionRound((event.clientY - top - offsetY) / scale),
+    };
   }
 
   // Load the background image in memory to measure its dimensions
@@ -87,7 +106,7 @@ class ShapeEditor extends Component {
       scale,
       onAddShape,
     } = this.props;
-    const { isMouseDown, planeHeight, planeWidth } = this.state;
+    const { planeHeight, planeWidth } = this.state;
 
     const childConstrainMove = rect =>
       constrainMove({ ...rect, planeWidth, planeHeight });
@@ -98,6 +117,9 @@ class ShapeEditor extends Component {
       return 'no image found';
     }
 
+    const setMouseHandler = mouseHandler => {
+      this.mouseHandler = mouseHandler;
+    };
     return (
       <svg
         data-is-plane-container
@@ -117,37 +139,27 @@ class ShapeEditor extends Component {
       >
         {!disableDrawMode && (
           <DrawLayer
-            DrawPreviewComponent={DrawPreviewComponent}
-            planeWidth={planeWidth}
-            planeHeight={planeHeight}
-            onAddShape={onAddShape}
-            scale={scale}
-            constrainResize={constrainResize}
             constrainMove={constrainMove}
-            setMouseHandling={(isD, mouseHandler) => {
-              this.mouseHandler = mouseHandler;
-              this.setState({ isMouseDown: isD });
-            }}
-            getPlaneCoordinatesFromEvent={event => {
-              const { top, left } = this.svgEl.getBoundingClientRect();
-
-              return {
-                x: (event.clientX - left) / scale,
-                y: (event.clientY - top) / scale,
-              };
-            }}
-            isMouseDown={isMouseDown}
+            constrainResize={constrainResize}
+            DrawPreviewComponent={DrawPreviewComponent}
+            getPlaneCoordinatesFromEvent={this.getPlaneCoordinatesFromEvent}
+            onAddShape={onAddShape}
+            planeHeight={planeHeight}
+            planeWidth={planeWidth}
+            scale={scale}
+            setMouseHandler={setMouseHandler}
           />
         )}
         {React.Children.map(children, (child, i) =>
           React.cloneElement(child, {
             constrainMove: childConstrainMove,
             constrainResize: childConstrainResize,
-            scale,
-            isMouseDown: false,
+            getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
             ref: reactObj => {
               this.nextChildRefs[child.key] = reactObj;
             },
+            scale,
+            setMouseHandler: setMouseHandler,
           })
         )}
       </svg>

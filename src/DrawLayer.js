@@ -5,6 +5,7 @@ import { getRectFromCornerCoordinates } from './utils';
 const defaultDragState = {
   dragStartCoordinates: null,
   dragCurrentCoordinates: null,
+  isMouseDown: false,
 };
 
 class ShapeEditor extends Component {
@@ -16,8 +17,8 @@ class ShapeEditor extends Component {
     };
 
     this.getCoordinatesFromEvent = this.getCoordinatesFromEvent.bind(this);
-    this.onDrawFinish = this.onDrawFinish.bind(this);
-    this.onDraw = this.onDraw.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
     this.mouseHandler = this.mouseHandler.bind(this);
   }
 
@@ -56,8 +57,8 @@ class ShapeEditor extends Component {
     return { x, y };
   }
 
-  onDrawFinish(event) {
-    if (!this.props.isMouseDown) {
+  onMouseUp(event) {
+    if (!this.state.isMouseDown) {
       return;
     }
 
@@ -66,7 +67,6 @@ class ShapeEditor extends Component {
       dragStartCoordinates.x === dragCurrentCoordinates.x ||
       dragStartCoordinates.y === dragCurrentCoordinates.y
     ) {
-      this.props.setMouseHandling(false);
       this.setState(defaultDragState);
       return;
     }
@@ -76,14 +76,13 @@ class ShapeEditor extends Component {
       dragCurrentCoordinates
     );
 
-    this.props.setMouseHandling(false);
     this.setState(defaultDragState, () => {
       this.props.onAddShape(newRect);
     });
   }
 
-  onDraw(event) {
-    if (!this.props.isMouseDown) {
+  onMouseMove(event) {
+    if (!this.state.isMouseDown) {
       return;
     }
 
@@ -94,11 +93,11 @@ class ShapeEditor extends Component {
 
   mouseHandler(event) {
     if (event.type === 'mousemove') {
-      this.onDraw(event);
+      this.onMouseMove(event);
       return;
     }
     if (event.type === 'mouseup') {
-      this.onDrawFinish(event);
+      this.onMouseUp(event);
       return;
     }
   }
@@ -109,10 +108,13 @@ class ShapeEditor extends Component {
       planeHeight,
       planeWidth,
       scale,
-      isMouseDown,
-      setMouseHandling,
+      setMouseHandler,
     } = this.props;
-    const { dragCurrentCoordinates, dragStartCoordinates } = this.state;
+    const {
+      dragCurrentCoordinates,
+      dragStartCoordinates,
+      isMouseDown,
+    } = this.state;
 
     const draggedRect = isMouseDown
       ? getRectFromCornerCoordinates(
@@ -130,11 +132,12 @@ class ShapeEditor extends Component {
           fill="transparent"
           onMouseDown={event => {
             const startCoordinates = this.getCoordinatesFromEvent(event, true);
+            setMouseHandler(this.mouseHandler);
             this.setState({
               dragStartCoordinates: startCoordinates,
               dragCurrentCoordinates: startCoordinates,
+              isMouseDown: true,
             });
-            setMouseHandling(true, this.mouseHandler);
           }}
         />
         {isMouseDown && (
@@ -157,12 +160,11 @@ ShapeEditor.propTypes = {
   constrainResize: PropTypes.func.isRequired,
   DrawPreviewComponent: PropTypes.func.isRequired,
   getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
-  isMouseDown: PropTypes.bool.isRequired,
   onAddShape: PropTypes.func.isRequired,
   planeHeight: PropTypes.number.isRequired,
   planeWidth: PropTypes.number.isRequired,
   scale: PropTypes.number.isRequired,
-  setMouseHandling: PropTypes.func.isRequired,
+  setMouseHandler: PropTypes.func.isRequired,
 };
 
 export default ShapeEditor;
