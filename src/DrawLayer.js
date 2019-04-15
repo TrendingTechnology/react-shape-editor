@@ -60,7 +60,7 @@ class ShapeEditor extends Component {
     return { x, y };
   }
 
-  onMouseUp(event) {
+  onMouseUp() {
     if (!this.state.isMouseDown) {
       return;
     }
@@ -97,11 +97,8 @@ class ShapeEditor extends Component {
   mouseHandler(event) {
     if (event.type === 'mousemove') {
       this.onMouseMove(event);
-      return;
-    }
-    if (event.type === 'mouseup') {
+    } else if (event.type === 'mouseup') {
       this.onMouseUp(event);
-      return;
     }
   }
 

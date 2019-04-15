@@ -1,7 +1,7 @@
 import React from 'react';
-import wrapShape from './wrapShape';
+import { wrapShape } from '../src';
 
-const SingleLineShape = ({ width, height, scale }) => {
+const RectShape = ({ width, height, scale }) => {
   const strokeWidth = 2 / scale;
   return (
     <rect
@@ -16,4 +16,4 @@ const SingleLineShape = ({ width, height, scale }) => {
   );
 };
 
-export default wrapShape(SingleLineShape);
+export default wrapShape(RectShape);

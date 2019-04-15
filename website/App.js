@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import ShapeEditor from './ShapeEditor';
-import SingleLineShape from './SingleLineShape';
+import { ShapeEditor } from '../src';
+import RectShape from './RectShape';
 import bgImage from './blank.png';
 
 let iterator = 0;
@@ -19,7 +19,7 @@ class App extends Component {
 
     this.state = {
       scale: 0.75,
-      items: [...new Array(50)].map((_, index) => ({
+      items: [...new Array(100)].map((_, index) => ({
         id: index,
         x: Math.random() * 1500,
         y: Math.random() * 1500,
@@ -52,8 +52,6 @@ class App extends Component {
       y: to5(Math.min(planeHeight - height, Math.max(0, y))),
     });
     const constrainResize = ({
-      originalMovingCorner,
-      startCorner: { x: startX, y: startY },
       movingCorner: { x: movingX, y: movingY },
       planeWidth,
       planeHeight,
@@ -63,14 +61,44 @@ class App extends Component {
     });
 
     return (
-      <div>
-        <button onClick={() => changeScale(1 / Math.sqrt(2))}>-</button>
-        <button onClick={() => changeScale(Math.sqrt(2))}>+</button>
-
+      <div className="wrapper">
+        <div className="navigation-wrapper">
+          <a
+            className="title"
+            href="https://github.com/fritz-c/react-shape-editor"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            React Shape Editor
+          </a>
+          <a
+            className="github-button"
+            href="https://github.com/fritz-c/react-shape-editor"
+            data-icon="octicon-star"
+            data-size="large"
+            data-show-count="true"
+            aria-label="Star fritz-c/react-shape-editor on GitHub"
+          >
+            Star
+          </a>
+        </div>
+        <div className="description">
+          Simple shape editor with React and SVG
+        </div>
+        <hr />
+        <div style={{ marginLeft: 20 }}>
+          <button type="button" onClick={() => changeScale(1 / Math.sqrt(2))}>
+            -
+          </button>
+          <button type="button" onClick={() => changeScale(Math.sqrt(2))}>
+            +
+          </button>
+        </div>
         <div
           style={{
             height: 400,
-            margin: 20,
+            marginLeft: 20,
+            marginRight: 20,
             border: 'solid gray 2px',
             overflow: 'auto',
           }}
@@ -93,7 +121,7 @@ class App extends Component {
             {items.map((item, index) => {
               const { id, width, height, x, y, type, ...otherProps } = item;
               return (
-                <SingleLineShape
+                <RectShape
                   key={id}
                   width={width}
                   height={height}

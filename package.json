@@ -3,11 +3,27 @@
   "description": "Simple shape editor component",
   "version": "0.1.0",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "parcel website/index.html",
+    "prebuild": "npm run lint && npm run clean",
+    "build": "rollup -c",
+    "build:storybook": "npm run clean:storybook && build-storybook -o build/storybook",
+    "build:website": "npm run clean:website && parcel build website/index.html -d build --public-url /react-shape-editor/",
+    "clean": "rimraf dist",
+    "clean:storybook": "rimraf build/storybook",
+    "clean:website": "rimraf build",
+    "lint": "eslint src",
+    "prettier": "prettier --write \"{src,example/src,stories}/**/*.{js,css,md}\"",
+    "prepublishOnly": "npm run lint && npm run test && npm run build",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
+    "storybook": "start-storybook -p ${PORT:-3001} -h 0.0.0.0",
+    "deploy": "gh-pages -d build"
   },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -15,20 +31,78 @@
   },
   "homepage": "https://github.com/fritz-c/react-shape-editor#readme",
   "bugs": "https://github.com/fritz-c/react-shape-editor/issues",
-  "eslintConfig": {
-    "extends": "react-app"
-  },
   "browserslist": [
     ">0.2%",
     "not dead",
     "not ie < 11",
     "not op_mini all"
   ],
+  "jest": {
+    "setupTestFrameworkScriptFile": "./node_modules/jest-enzyme/lib/index.js",
+    "setupFiles": [
+      "./test-config/shim.js",
+      "./test-config/test-setup.js"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "json"
+    ],
+    "moduleDirectories": [
+      "node_modules"
+    ],
+    "moduleNameMapper": {
+      "\\.(css|jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js"
+    }
+  },
   "dependencies": {
-    "prop-types": "^15.7.2",
+    "prop-types": "^15.5.7"
+  },
+  "peerDependencies": {
     "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.6",
+    "@babel/plugin-transform-modules-commonjs": "^7.1.0",
+    "@babel/preset-env": "^7.1.6",
+    "@babel/preset-react": "^7.0.0",
+    "@storybook/addon-options": "^4.0.0-alpha.4",
+    "@storybook/addon-storyshots": "^4.0.0-alpha.4",
+    "@storybook/react": "^4.0.0-alpha.4",
+    "autoprefixer": "^9.3.1",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^10.0.1",
+    "babel-jest": "^23.6.0",
+    "babel-loader": "^8.0.4",
+    "codesandbox": "^1.2.10",
+    "coveralls": "^3.0.1",
+    "cross-env": "^5.1.6",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "eslint": "^5.9.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-prettier": "^3.3.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.8.2",
+    "gh-pages": "^2.0.1",
+    "jest": "^23.1.0",
+    "jest-enzyme": "^7.0.1",
+    "parcel-bundler": "^1.11.0",
+    "prettier": "^1.13.3",
+    "react": "^16.8.6",
+    "react-addons-shallow-compare": "^15.6.2",
     "react-dom": "^16.8.6",
-    "react-scripts": "2.1.8"
+    "react-hot-loader": "^4.3.0",
+    "react-test-renderer": "^16.4.0",
+    "rimraf": "^2.6.2",
+    "rollup": "^0.67.1",
+    "rollup-plugin-babel": "^4.0.3",
+    "rollup-plugin-commonjs": "^9.1.3",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-postcss": "^1.6.2"
   },
   "keywords": [
     "react",

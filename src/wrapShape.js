@@ -107,11 +107,8 @@ function wrapShape(WrappedComponent) {
     mouseHandler(event) {
       if (event.type === 'mousemove') {
         this.onMouseMove(event);
-        return;
-      }
-      if (event.type === 'mouseup') {
+      } else if (event.type === 'mouseup') {
         this.onMouseUp(event);
-        return;
       }
     }
 
@@ -304,10 +301,14 @@ function wrapShape(WrappedComponent) {
       ]
         .filter(a => a)
         .map(
-          (
-            [handleName, movementReferenceCorner, cursor, left, top, dragLock],
-            index
-          ) => (
+          ([
+            handleName,
+            movementReferenceCorner,
+            cursor,
+            left,
+            top,
+            dragLock,
+          ]) => (
             <rect
               key={handleName}
               x={left - cornerSize / 2}

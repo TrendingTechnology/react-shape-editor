@@ -143,7 +143,7 @@ class ShapeEditor extends Component {
             setMouseHandler={setMouseHandler}
           />
         )}
-        {React.Children.map(children, (child, i) =>
+        {React.Children.map(children, child =>
           React.cloneElement(child, {
             constrainMove: childConstrainMove,
             constrainResize: childConstrainResize,
@@ -152,7 +152,7 @@ class ShapeEditor extends Component {
               this.nextChildRefs[child.key] = reactObj;
             },
             scale,
-            setMouseHandler: setMouseHandler,
+            setMouseHandler,
           })
         )}
       </svg>
