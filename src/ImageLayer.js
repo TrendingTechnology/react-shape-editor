@@ -60,35 +60,23 @@ class ImageLayer extends Component {
       ...otherProps
     } = this.props;
     const { naturalHeight, naturalWidth } = this.state;
-    const patternId = `ImageLayer${src.replace(/\W/g, '-')}`;
+    const clipPathId = `ImageLayer${src.replace(/\W/g, '-')}`;
 
-    // Take the offset into account so we don't print the image
-    // as a repeating tile
     const displayWidth = width !== null ? width : naturalWidth;
     const displayHeight = height !== null ? height : naturalHeight;
 
     return (
       <React.Fragment>
-        <defs>
-          <pattern
-            id={patternId}
-            patternUnits="userSpaceOnUse"
-            width={naturalWidth}
-            height={naturalHeight}
-          >
-            <image
-              href={src}
-              width={naturalWidth}
-              height={naturalHeight}
-              x={imageOffsetX}
-              y={imageOffsetY}
-            />
-          </pattern>
-        </defs>
-        <rect
-          width={displayWidth}
-          height={displayHeight}
-          fill={`url(#${patternId})`}
+        <clipPath id={clipPathId}>
+          <rect width={displayWidth} height={displayHeight} />
+        </clipPath>
+        <image
+          clipPath={`url(#${clipPathId})`}
+          href={src}
+          x={imageOffsetX}
+          y={imageOffsetY}
+          width={naturalWidth}
+          height={naturalHeight}
           {...otherProps}
         />
       </React.Fragment>
