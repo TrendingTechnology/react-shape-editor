@@ -122,7 +122,7 @@ class App extends Component {
               }}
             />
             {items.map((item, index) => {
-              const { id, width, height, x, y, type, ...otherProps } = item;
+              const { id, width, height, x, y, ...otherProps } = item;
               return (
                 <RectShape
                   key={id}

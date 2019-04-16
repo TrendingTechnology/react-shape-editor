@@ -18,10 +18,10 @@ const DefaultResizeHandleComponent = ({
     strokeWidth={1 / scale}
     style={{
       ...(active
-        ? { fill: 'rgba(255,0,0,0.8)', stroke: 'rgba(255,0,0,0.8)' }
+        ? { fill: 'rgba(229,240,244,1)', stroke: 'rgba(53,33,140,1)' }
         : {
-            fill: 'rgba(255,0,0,0.2)',
-            stroke: 'rgba(255,0,0,0.3)',
+            fill: 'rgba(229,240,244,0.3)',
+            stroke: 'rgba(53,33,140,0.3)',
           }),
       cursor,
     }}

@@ -449,7 +449,7 @@ function wrapShape(WrappedComponent) {
           }}
         >
           <WrappedComponent
-            isDragging={isMouseDown}
+            isBeingChanged={isMouseDown}
             active={active}
             {...otherProps}
             width={width}
