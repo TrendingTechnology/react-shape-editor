@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import DefaultResizeHandleComponent from './DefaultResizeHandleComponent';
 import {
   getRectFromCornerCoordinates,
   defaultConstrainMove,
@@ -253,6 +254,7 @@ function wrapShape(WrappedComponent) {
         onDelete,
         onFocus,
         onKeyDown,
+        ResizeHandleComponent,
         setMouseHandler,
         ...otherProps
       } = this.props;
@@ -284,12 +286,27 @@ function wrapShape(WrappedComponent) {
       const width = sides.right - sides.left;
       const height = sides.bottom - sides.top;
 
-      const SPACIOUS_PIXELS = 20;
-      const cornerSize = SPACIOUS_PIXELS / 2 / scale;
+      // The corner of the resize box that moves
+      const movementPoints = {
+        nw: { x: sides.left, y: sides.top },
+        sw: { x: sides.left, y: sides.bottom },
+        ne: { x: sides.right, y: sides.top },
+        se: { x: sides.right, y: sides.bottom },
+      };
+      // The corner of the resize box that stays static
+      const anchorPoints = {
+        nw: movementPoints.se,
+        sw: movementPoints.ne,
+        ne: movementPoints.sw,
+        se: movementPoints.nw,
+      };
+
+      const RECOMMENDED_CORNER_SIZE = 10;
+      const cornerSize = RECOMMENDED_CORNER_SIZE / scale;
       const hasSpaciousVertical =
-        (sides.bottom - sides.top) * scale > SPACIOUS_PIXELS;
+        (sides.bottom - sides.top) * scale > cornerSize * 2;
       const hasSpaciousHorizontal =
-        (sides.right - sides.left) * scale > SPACIOUS_PIXELS;
+        (sides.right - sides.left) * scale > cornerSize * 2;
       // Generate drag handles
       const handles = [
         hasSpaciousHorizontal && ['n', 'ne', 'ns-resize', width / 2, 0, 'x'],
@@ -310,54 +327,20 @@ function wrapShape(WrappedComponent) {
       ]
         .filter(a => a)
         .map(
-          ([
-            handleName,
-            movementReferenceCorner,
-            cursor,
-            left,
-            top,
-            dragLock,
-          ]) => (
-            <rect
+          ([handleName, movementReferenceCorner, cursor, x, y, dragLock]) => (
+            <ResizeHandleComponent
               key={handleName}
-              x={left - cornerSize / 2}
-              y={top - cornerSize / 2}
-              width={cornerSize}
-              height={cornerSize}
-              strokeWidth={1 / scale}
-              style={{
-                ...(active
-                  ? { fill: 'rgba(255,0,0,0.8)', stroke: 'rgba(255,0,0,0.8)' }
-                  : {
-                      fill: 'rgba(255,0,0,0.2)',
-                      stroke: 'rgba(255,0,0,0.3)',
-                    }),
-                cursor,
-              }}
+              active={active}
+              cursor={cursor}
               onMouseDown={event => {
                 event.stopPropagation();
-
-                // The corner of the resize box that moves
-                const movementPoints = {
-                  nw: { x: sides.left, y: sides.top },
-                  sw: { x: sides.left, y: sides.bottom },
-                  ne: { x: sides.right, y: sides.top },
-                  se: { x: sides.right, y: sides.bottom },
-                };
-                // The corner of the resize box that stays static
-                const anchorPoints = {
-                  nw: movementPoints.se,
-                  sw: movementPoints.ne,
-                  ne: movementPoints.sw,
-                  se: movementPoints.nw,
-                };
-
-                const movingPoint = movementPoints[movementReferenceCorner];
-                const anchorPoint = anchorPoints[movementReferenceCorner];
 
                 const { x: planeX, y: planeY } = getPlaneCoordinatesFromEvent(
                   event
                 );
+
+                const movingPoint = movementPoints[movementReferenceCorner];
+                const anchorPoint = anchorPoints[movementReferenceCorner];
                 const dragInnerOffset = {
                   x: planeX - movingPoint.x,
                   y: planeY - movingPoint.y,
@@ -373,6 +356,10 @@ function wrapShape(WrappedComponent) {
                   dragLock,
                 });
               }}
+              recommendedSize={cornerSize}
+              scale={scale}
+              x={x}
+              y={y}
             />
           )
         );
@@ -486,6 +473,7 @@ function wrapShape(WrappedComponent) {
     onDelete: PropTypes.func,
     onFocus: PropTypes.func,
     onKeyDown: PropTypes.func,
+    ResizeHandleComponent: PropTypes.func,
     scale: PropTypes.number,
     setMouseHandler: PropTypes.func,
     width: PropTypes.number.isRequired,
@@ -504,6 +492,7 @@ function wrapShape(WrappedComponent) {
     onDelete: () => {},
     onFocus: () => {},
     onKeyDown: () => {},
+    ResizeHandleComponent: DefaultResizeHandleComponent,
     scale: 1,
     setMouseHandler: () => {},
   };
