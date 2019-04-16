@@ -10,7 +10,7 @@ Todo
 
 ## Usage
 
-```js
+```jsx
 import React from 'react';
 import {
   ShapeEditor,
