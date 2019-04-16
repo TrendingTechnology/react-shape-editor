@@ -248,8 +248,10 @@ function wrapShape(WrappedComponent) {
         constrainMove,
         constrainResize,
         getPlaneCoordinatesFromEvent,
+        onBlur,
         onChange,
         onDelete,
+        onFocus,
         onKeyDown,
         setMouseHandler,
         ...otherProps
@@ -389,8 +391,14 @@ function wrapShape(WrappedComponent) {
           }}
           focusable={!disabled ? true : undefined} // IE11 support
           tabIndex={!disabled ? 0 : undefined}
-          onFocus={() => this.setState({ active: true })}
-          onBlur={() => this.setState({ active: false })}
+          onFocus={event => {
+            this.setState({ active: true });
+            onFocus(event);
+          }}
+          onBlur={event => {
+            this.setState({ active: false });
+            onBlur(event);
+          }}
           onMouseDown={event => {
             event.stopPropagation();
             const { x, y } = this.props;
@@ -473,8 +481,10 @@ function wrapShape(WrappedComponent) {
     getPlaneCoordinatesFromEvent: PropTypes.func,
     height: PropTypes.number.isRequired,
     keyboardTransformMultiplier: PropTypes.number,
+    onBlur: PropTypes.func,
     onChange: PropTypes.func,
     onDelete: PropTypes.func,
+    onFocus: PropTypes.func,
     onKeyDown: PropTypes.func,
     scale: PropTypes.number,
     setMouseHandler: PropTypes.func,
@@ -489,8 +499,10 @@ function wrapShape(WrappedComponent) {
     disabled: false,
     getPlaneCoordinatesFromEvent: () => {},
     keyboardTransformMultiplier: 1,
+    onBlur: () => {},
     onChange: () => {},
     onDelete: () => {},
+    onFocus: () => {},
     onKeyDown: () => {},
     scale: 1,
     setMouseHandler: () => {},
