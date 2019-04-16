@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ShapeEditor } from '../src';
+import { ShapeEditor, ImageLayer } from '../src';
 import RectShape from './RectShape';
 import bgImage from './blank.png';
 
@@ -26,6 +26,8 @@ class App extends Component {
         width: 150,
         height: 125,
       })),
+      vectorWidth: 0,
+      vectorHeight: 0,
     };
   }
 
@@ -37,27 +39,16 @@ class App extends Component {
       this.setState(state => ({
         scale: Math.max(MIN_SCALE, Math.min(MAX_SCALE, state.scale * ratio)),
       }));
-    const { scale, items } = this.state;
+    const { scale, items, vectorWidth, vectorHeight } = this.state;
     const to5 = n => Math.floor(n / 5) * 5;
 
-    const constrainMove = ({
-      x,
-      y,
-      width,
-      height,
-      planeWidth,
-      planeHeight,
-    }) => ({
-      x: to5(Math.min(planeWidth - width, Math.max(0, x))),
-      y: to5(Math.min(planeHeight - height, Math.max(0, y))),
+    const constrainMove = ({ x, y, width, height }) => ({
+      x: to5(Math.min(vectorWidth - width, Math.max(0, x))),
+      y: to5(Math.min(vectorHeight - height, Math.max(0, y))),
     });
-    const constrainResize = ({
-      movingCorner: { x: movingX, y: movingY },
-      planeWidth,
-      planeHeight,
-    }) => ({
-      x: to5(Math.min(planeWidth, Math.max(0, movingX))),
-      y: to5(Math.min(planeHeight, Math.max(0, movingY))),
+    const constrainResize = ({ movingCorner: { x: movingX, y: movingY } }) => ({
+      x: to5(Math.min(vectorWidth, Math.max(0, movingX))),
+      y: to5(Math.min(vectorHeight, Math.max(0, movingY))),
     });
 
     return (
@@ -104,7 +95,6 @@ class App extends Component {
           }}
         >
           <ShapeEditor
-            planeImageSrc={bgImage}
             scale={scale}
             onAddShape={({ x, y, width, height }) => {
               this.setState(state => ({
@@ -117,7 +107,18 @@ class App extends Component {
             }}
             constrainMove={constrainMove}
             constrainResize={constrainResize}
+            vectorWidth={vectorWidth}
+            vectorHeight={vectorHeight}
           >
+            <ImageLayer
+              src={bgImage}
+              onLoad={({ naturalWidth, naturalHeight }) => {
+                this.setState({
+                  vectorWidth: naturalWidth,
+                  vectorHeight: naturalHeight,
+                });
+              }}
+            />
             {items.map((item, index) => {
               const { id, width, height, x, y, type, ...otherProps } = item;
               return (

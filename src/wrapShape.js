@@ -11,7 +11,7 @@ const defaultDragState = {
 };
 
 function wrapShape(WrappedComponent) {
-  const ItemHOC = class extends React.Component {
+  const WrappedShape = class extends React.Component {
     constructor(props) {
       super(props);
 
@@ -462,7 +462,7 @@ function wrapShape(WrappedComponent) {
     }
   };
 
-  ItemHOC.propTypes = {
+  WrappedShape.propTypes = {
     constrainMove: PropTypes.func,
     constrainResize: PropTypes.func,
     disabled: PropTypes.bool,
@@ -479,7 +479,7 @@ function wrapShape(WrappedComponent) {
     y: PropTypes.number.isRequired,
   };
 
-  ItemHOC.defaultProps = {
+  WrappedShape.defaultProps = {
     constrainMove: () => {},
     constrainResize: () => {},
     disabled: false,
@@ -492,7 +492,9 @@ function wrapShape(WrappedComponent) {
     setMouseHandler: () => {},
   };
 
-  return ItemHOC;
+  WrappedShape.rseType = 'WrappedShape';
+
+  return WrappedShape;
 }
 
 export default wrapShape;

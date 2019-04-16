@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { getRectFromCornerCoordinates } from './utils';
+import wrapShape from './wrapShape';
+
+const DefaultDrawComponent = wrapShape(({ height, width }) => (
+  <rect fill="rgba(0,0,255,0.5)" height={height} width={width} />
+));
 
 const defaultDragState = {
   dragStartCoordinates: null,
@@ -8,7 +13,7 @@ const defaultDragState = {
   isMouseDown: false,
 };
 
-class ShapeEditor extends Component {
+class DrawLayer extends Component {
   constructor(props) {
     super(props);
 
@@ -155,10 +160,10 @@ class ShapeEditor extends Component {
   }
 }
 
-ShapeEditor.propTypes = {
+DrawLayer.propTypes = {
   constrainMove: PropTypes.func.isRequired,
   constrainResize: PropTypes.func.isRequired,
-  DrawPreviewComponent: PropTypes.func.isRequired,
+  DrawPreviewComponent: PropTypes.func,
   getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
   onAddShape: PropTypes.func.isRequired,
   planeHeight: PropTypes.number.isRequired,
@@ -167,4 +172,10 @@ ShapeEditor.propTypes = {
   setMouseHandler: PropTypes.func.isRequired,
 };
 
-export default ShapeEditor;
+DrawLayer.defaultProps = {
+  DrawPreviewComponent: DefaultDrawComponent,
+};
+
+DrawLayer.rseType = 'DrawLayer';
+
+export default DrawLayer;

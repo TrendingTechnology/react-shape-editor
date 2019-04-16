@@ -1,24 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import wrapShape from './wrapShape';
 import DrawLayer from './DrawLayer';
-
-const DefaultDrawComponent = wrapShape(({ height, width }) => (
-  <rect fill="rgba(0,0,255,0.5)" height={height} width={width} />
-));
 
 class ShapeEditor extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      planeWidth: 0,
-      planeHeight: 0,
-    };
     this.childRefs = {};
     this.nextChildRefs = {};
 
-    this.getImageDimensionInfo = this.getImageDimensionInfo.bind(this);
     this.onMouseEvent = this.onMouseEvent.bind(this);
     this.getPlaneCoordinatesFromEvent = this.getPlaneCoordinatesFromEvent.bind(
       this
@@ -28,14 +18,9 @@ class ShapeEditor extends Component {
   componentDidMount() {
     window.addEventListener('mouseup', this.onMouseEvent);
     window.addEventListener('mousemove', this.onMouseEvent);
-    this.getImageDimensionInfo();
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.planeImageSrc !== this.props.planeImageSrc) {
-      this.getImageDimensionInfo();
-    }
-
+  componentDidUpdate() {
     // Focus on newly added children
     const newChildrenKeys = Object.keys(this.nextChildRefs).filter(
       key => !this.childRefs[key]
@@ -69,25 +54,6 @@ class ShapeEditor extends Component {
     };
   }
 
-  // Load the background image in memory to measure its dimensions
-  getImageDimensionInfo() {
-    if (!this.props.planeImageSrc) {
-      return;
-    }
-
-    const memoryImage = new Image();
-
-    memoryImage.onload = () => {
-      if (!this.unmounted) {
-        this.setState({
-          planeWidth: memoryImage.naturalWidth,
-          planeHeight: memoryImage.naturalHeight,
-        });
-      }
-    };
-    memoryImage.src = this.props.planeImageSrc;
-  }
-
   render() {
     const {
       children,
@@ -95,39 +61,26 @@ class ShapeEditor extends Component {
       constrainResize,
       disableDrawMode,
       DrawPreviewComponent,
-      planeImageSrc,
-      scale,
       onAddShape,
+      scale,
+      vectorHeight,
+      vectorWidth,
     } = this.props;
-    const { planeHeight, planeWidth } = this.state;
-
-    const childConstrainMove = rect =>
-      constrainMove({ ...rect, planeWidth, planeHeight });
-    const childConstrainResize = args =>
-      constrainResize({ ...args, planeWidth, planeHeight });
-
-    if (!planeImageSrc) {
-      return 'no image found';
-    }
 
     const setMouseHandler = mouseHandler => {
       this.mouseHandler = mouseHandler;
     };
     return (
       <svg
-        data-is-plane-container
         className="rse-plane-container"
-        style={{
-          backgroundImage: `url(${planeImageSrc})`,
-          backgroundSize: 'cover',
-          overflow: 'hidden',
-          userSelect: 'none',
-        }}
-        width={planeWidth * scale}
-        height={planeHeight * scale}
-        viewBox={`0 0 ${planeWidth} ${planeHeight}`}
+        width={vectorWidth * scale}
+        height={vectorHeight * scale}
+        viewBox={`0 0 ${vectorWidth} ${vectorHeight}`}
         ref={el => {
           this.svgEl = el;
+        }}
+        style={{
+          userSelect: 'none',
         }}
         // IE11 - prevent all elements from being focusable by default
         focusable={false}
@@ -139,24 +92,29 @@ class ShapeEditor extends Component {
             DrawPreviewComponent={DrawPreviewComponent}
             getPlaneCoordinatesFromEvent={this.getPlaneCoordinatesFromEvent}
             onAddShape={onAddShape}
-            planeHeight={planeHeight}
-            planeWidth={planeWidth}
+            planeHeight={vectorHeight}
+            planeWidth={vectorWidth}
             scale={scale}
             setMouseHandler={setMouseHandler}
           />
         )}
-        {React.Children.map(children, child =>
-          React.cloneElement(child, {
-            constrainMove: childConstrainMove,
-            constrainResize: childConstrainResize,
-            getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
-            ref: reactObj => {
-              this.nextChildRefs[child.key] = reactObj;
-            },
-            scale,
-            setMouseHandler,
-          })
-        )}
+        {React.Children.map(children, child => {
+          switch (child.type.rseType) {
+            case 'WrappedShape':
+              return React.cloneElement(child, {
+                constrainMove,
+                constrainResize,
+                getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
+                ref: reactObj => {
+                  this.nextChildRefs[child.key] = reactObj;
+                },
+                scale,
+                setMouseHandler,
+              });
+            default:
+              return child;
+          }
+        })}
       </svg>
     );
   }
@@ -169,18 +127,21 @@ ShapeEditor.propTypes = {
   disableDrawMode: PropTypes.bool,
   DrawPreviewComponent: PropTypes.func,
   onAddShape: PropTypes.func,
-  planeImageSrc: PropTypes.string.isRequired,
   scale: PropTypes.number,
+  vectorHeight: PropTypes.number,
+  vectorWidth: PropTypes.number,
 };
 
 ShapeEditor.defaultProps = {
   children: null,
   constrainMove: ({ x, y }) => ({ x, y }),
   constrainResize: ({ movingCorner }) => movingCorner,
-  onAddShape: () => {},
   disableDrawMode: false,
-  DrawPreviewComponent: DefaultDrawComponent,
+  DrawPreviewComponent: undefined,
+  onAddShape: () => {},
   scale: 1,
+  vectorHeight: 0,
+  vectorWidth: 0,
 };
 
 export default ShapeEditor;
