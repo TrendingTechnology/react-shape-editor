@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { getRectFromCornerCoordinates } from './utils';
+import {
+  getRectFromCornerCoordinates,
+  defaultConstrainMove,
+  defaultConstrainResize,
+} from './utils';
 import wrapShape from './wrapShape';
 
 const DefaultDrawComponent = wrapShape(({ height, width }) => (
@@ -32,8 +36,8 @@ class DrawLayer extends Component {
       constrainResize,
       constrainMove,
       getPlaneCoordinatesFromEvent,
-      planeWidth,
-      planeHeight,
+      vectorWidth,
+      vectorHeight,
     } = this.props;
     const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
     const { x: rawX, y: rawY } = getPlaneCoordinatesFromEvent(event);
@@ -46,8 +50,8 @@ class DrawLayer extends Component {
         y: rawY,
         width: 0,
         height: 0,
-        planeWidth,
-        planeHeight,
+        vectorWidth,
+        vectorHeight,
       });
 
       return { x, y };
@@ -58,8 +62,8 @@ class DrawLayer extends Component {
       startCorner: dragStartCoordinates,
       movingCorner: { x: rawX, y: rawY },
       lockedDimension: null,
-      planeWidth,
-      planeHeight,
+      vectorWidth,
+      vectorHeight,
     });
 
     return { x, y };
@@ -110,10 +114,10 @@ class DrawLayer extends Component {
   render() {
     const {
       DrawPreviewComponent,
-      planeHeight,
-      planeWidth,
       scale,
       setMouseHandler,
+      vectorHeight,
+      vectorWidth,
     } = this.props;
     const {
       dragCurrentCoordinates,
@@ -132,8 +136,8 @@ class DrawLayer extends Component {
       <React.Fragment>
         <rect
           className="rse-draw-layer"
-          width={planeWidth}
-          height={planeHeight}
+          width={vectorWidth}
+          height={vectorHeight}
           fill="transparent"
           onMouseDown={event => {
             const startCoordinates = this.getCoordinatesFromEvent(event, true);
@@ -161,19 +165,26 @@ class DrawLayer extends Component {
 }
 
 DrawLayer.propTypes = {
-  constrainMove: PropTypes.func.isRequired,
-  constrainResize: PropTypes.func.isRequired,
+  constrainMove: PropTypes.func,
+  constrainResize: PropTypes.func,
   DrawPreviewComponent: PropTypes.func,
-  getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
+  getPlaneCoordinatesFromEvent: PropTypes.func,
   onAddShape: PropTypes.func.isRequired,
-  planeHeight: PropTypes.number.isRequired,
-  planeWidth: PropTypes.number.isRequired,
-  scale: PropTypes.number.isRequired,
-  setMouseHandler: PropTypes.func.isRequired,
+  scale: PropTypes.number,
+  setMouseHandler: PropTypes.func,
+  vectorHeight: PropTypes.number,
+  vectorWidth: PropTypes.number,
 };
 
 DrawLayer.defaultProps = {
+  constrainMove: defaultConstrainMove,
+  constrainResize: defaultConstrainResize,
   DrawPreviewComponent: DefaultDrawComponent,
+  getPlaneCoordinatesFromEvent: () => {},
+  scale: 1,
+  setMouseHandler: () => {},
+  vectorHeight: 0,
+  vectorWidth: 0,
 };
 
 DrawLayer.rseType = 'DrawLayer';

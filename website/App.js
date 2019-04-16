@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ShapeEditor, ImageLayer } from '../src';
+import { ShapeEditor, ImageLayer, DrawLayer } from '../src';
 import RectShape from './RectShape';
 import bgImage from './blank.png';
 
@@ -96,17 +96,6 @@ class App extends Component {
         >
           <ShapeEditor
             scale={scale}
-            onAddShape={({ x, y, width, height }) => {
-              this.setState(state => ({
-                items: [
-                  ...state.items,
-                  { id: `id${iterator}`, x, y, width, height },
-                ],
-              }));
-              iterator += 1;
-            }}
-            constrainMove={constrainMove}
-            constrainResize={constrainResize}
             vectorWidth={vectorWidth}
             vectorHeight={vectorHeight}
           >
@@ -119,6 +108,19 @@ class App extends Component {
                 });
               }}
             />
+            <DrawLayer
+              constrainMove={constrainMove}
+              constrainResize={constrainResize}
+              onAddShape={({ x, y, width, height }) => {
+                this.setState(state => ({
+                  items: [
+                    ...state.items,
+                    { id: `id${iterator}`, x, y, width, height },
+                  ],
+                }));
+                iterator += 1;
+              }}
+            />
             {items.map((item, index) => {
               const { id, width, height, x, y, type, ...otherProps } = item;
               return (
@@ -129,6 +131,8 @@ class App extends Component {
                   x={x}
                   y={y}
                   keyboardTransformMultiplier={5}
+                  constrainMove={constrainMove}
+                  constrainResize={constrainResize}
                   onChange={newRect => {
                     this.setState(state => ({
                       items: arrayReplace(state.items, index, {

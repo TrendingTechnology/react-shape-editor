@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import DrawLayer from './DrawLayer';
 
 class ShapeEditor extends Component {
   constructor(props) {
@@ -55,17 +54,7 @@ class ShapeEditor extends Component {
   }
 
   render() {
-    const {
-      children,
-      constrainMove,
-      constrainResize,
-      disableDrawMode,
-      DrawPreviewComponent,
-      onAddShape,
-      scale,
-      vectorHeight,
-      vectorWidth,
-    } = this.props;
+    const { children, scale, vectorHeight, vectorWidth } = this.props;
 
     const setMouseHandler = mouseHandler => {
       this.mouseHandler = mouseHandler;
@@ -85,25 +74,18 @@ class ShapeEditor extends Component {
         // IE11 - prevent all elements from being focusable by default
         focusable={false}
       >
-        {!disableDrawMode && (
-          <DrawLayer
-            constrainMove={constrainMove}
-            constrainResize={constrainResize}
-            DrawPreviewComponent={DrawPreviewComponent}
-            getPlaneCoordinatesFromEvent={this.getPlaneCoordinatesFromEvent}
-            onAddShape={onAddShape}
-            planeHeight={vectorHeight}
-            planeWidth={vectorWidth}
-            scale={scale}
-            setMouseHandler={setMouseHandler}
-          />
-        )}
         {React.Children.map(children, child => {
           switch (child.type.rseType) {
+            case 'DrawLayer':
+              return React.cloneElement(child, {
+                getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
+                vectorHeight,
+                vectorWidth,
+                scale,
+                setMouseHandler,
+              });
             case 'WrappedShape':
               return React.cloneElement(child, {
-                constrainMove,
-                constrainResize,
                 getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
                 ref: reactObj => {
                   this.nextChildRefs[child.key] = reactObj;
@@ -122,11 +104,6 @@ class ShapeEditor extends Component {
 
 ShapeEditor.propTypes = {
   children: PropTypes.node,
-  constrainMove: PropTypes.func,
-  constrainResize: PropTypes.func,
-  disableDrawMode: PropTypes.bool,
-  DrawPreviewComponent: PropTypes.func,
-  onAddShape: PropTypes.func,
   scale: PropTypes.number,
   vectorHeight: PropTypes.number,
   vectorWidth: PropTypes.number,
@@ -134,11 +111,6 @@ ShapeEditor.propTypes = {
 
 ShapeEditor.defaultProps = {
   children: null,
-  constrainMove: ({ x, y }) => ({ x, y }),
-  constrainResize: ({ movingCorner }) => movingCorner,
-  disableDrawMode: false,
-  DrawPreviewComponent: undefined,
-  onAddShape: () => {},
   scale: 1,
   vectorHeight: 0,
   vectorWidth: 0,

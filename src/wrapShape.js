@@ -1,6 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { getRectFromCornerCoordinates } from './utils';
+import {
+  getRectFromCornerCoordinates,
+  defaultConstrainMove,
+  defaultConstrainResize,
+} from './utils';
 
 const defaultDragState = {
   isMouseDown: false,
@@ -480,8 +484,8 @@ function wrapShape(WrappedComponent) {
   };
 
   WrappedShape.defaultProps = {
-    constrainMove: () => {},
-    constrainResize: () => {},
+    constrainMove: defaultConstrainMove,
+    constrainResize: defaultConstrainResize,
     disabled: false,
     getPlaneCoordinatesFromEvent: () => {},
     keyboardTransformMultiplier: 1,

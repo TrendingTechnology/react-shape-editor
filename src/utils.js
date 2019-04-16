@@ -6,3 +6,6 @@ export function getRectFromCornerCoordinates(corner1, corner2) {
     height: Math.abs(corner1.y - corner2.y),
   };
 }
+
+export const defaultConstrainMove = ({ x, y }) => ({ x, y });
+export const defaultConstrainResize = ({ movingCorner }) => movingCorner;
