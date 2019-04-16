@@ -232,7 +232,10 @@ function wrapShape(WrappedComponent) {
     }
 
     forceFocus() {
-      this.wrapperEl.focus();
+      // IE11 doesn't have the focus method
+      if (this.wrapperEl.focus) {
+        this.wrapperEl.focus();
+      }
     }
 
     render() {
@@ -380,6 +383,7 @@ function wrapShape(WrappedComponent) {
           ref={el => {
             this.wrapperEl = el;
           }}
+          focusable={!disabled ? true : undefined} // IE11 support
           tabIndex={!disabled ? 0 : undefined}
           onFocus={() => this.setState({ active: true })}
           onBlur={() => this.setState({ active: false })}

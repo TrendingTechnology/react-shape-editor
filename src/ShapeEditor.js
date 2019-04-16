@@ -129,6 +129,8 @@ class ShapeEditor extends Component {
         ref={el => {
           this.svgEl = el;
         }}
+        // IE11 - prevent all elements from being focusable by default
+        focusable={false}
       >
         {!disableDrawMode && (
           <DrawLayer
