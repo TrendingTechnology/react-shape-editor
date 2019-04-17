@@ -20,39 +20,47 @@ class ShapeEditor extends Component {
   }
 
   componentDidUpdate() {
-    // Focus on newly added children
-    const newShapeKeys = Object.keys(this.nextWrappedShapes).filter(
-      key => !this.wrappedShapes[key]
-    );
+    if (Object.keys(this.nextWrappedShapes).length > 0) {
+      // Focus on newly added children
+      const newShapeKeys = Object.keys(this.nextWrappedShapes).filter(
+        key => !this.wrappedShapes[key]
+      );
 
-    if (newShapeKeys.length > 0) {
-      // When new shape(s) were added, focus on the first one
-      this.nextWrappedShapes[newShapeKeys[0]].forceFocus();
-    } else {
-      const oldKeys = Object.keys(this.wrappedShapes);
-      const nextKeys = Object.keys(this.nextWrappedShapes);
+      if (newShapeKeys.length > 0) {
+        // When new shape(s) were added, focus on the first one
+        this.nextWrappedShapes[newShapeKeys[0]].forceFocus();
+      } else {
+        const deletedShapeKeys = Object.keys(this.wrappedShapes).filter(
+          key => !this.nextWrappedShapes[key]
+        );
 
-      // If something was deleted, focus on the shape before or after it
-      if (oldKeys.length !== nextKeys.length) {
-        let closestKeyToDeletedKey = null;
-        let deletedOneFound = false;
+        // If something was deleted, focus on the next closest shape
+        // by center coordinates
+        if (deletedShapeKeys.length > 0) {
+          const getShapeCenter = shape => ({
+            x: shape.props.x + shape.props.width / 2,
+            y: shape.props.y + shape.props.height / 2,
+          });
+          const deletedShapeCenter = getShapeCenter(
+            this.wrappedShapes[deletedShapeKeys[0]]
+          );
 
-        for (
-          let i = 0;
-          i < oldKeys.length &&
-          (closestKeyToDeletedKey === null || !deletedOneFound);
-          i += 1
-        ) {
-          const key = oldKeys[i];
-          if (!this.nextWrappedShapes[key]) {
-            deletedOneFound = true;
-          } else {
-            closestKeyToDeletedKey = key;
+          let closestDistance = Math.MAX_SAFE_INTEGER || 2 ** 53 - 1;
+          let closestKeyToDeletedKey = null;
+          Object.keys(this.nextWrappedShapes).forEach(key => {
+            const shapeCenter = getShapeCenter(this.nextWrappedShapes[key]);
+            const distance =
+              (deletedShapeCenter.x - shapeCenter.x) ** 2 +
+              (deletedShapeCenter.y - shapeCenter.y) ** 2;
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestKeyToDeletedKey = key;
+            }
+          });
+
+          if (this.nextWrappedShapes[closestKeyToDeletedKey]) {
+            this.nextWrappedShapes[closestKeyToDeletedKey].forceFocus();
           }
-        }
-
-        if (this.nextWrappedShapes[closestKeyToDeletedKey]) {
-          this.nextWrappedShapes[closestKeyToDeletedKey].forceFocus();
         }
       }
     }
