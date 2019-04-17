@@ -50,55 +50,27 @@ class ImageLayer extends Component {
   }
 
   render() {
-    const {
-      height,
-      imageOffsetX,
-      imageOffsetY,
-      onLoad,
-      src,
-      width,
-      ...otherProps
-    } = this.props;
+    const { onLoad, src, ...otherProps } = this.props;
     const { naturalHeight, naturalWidth } = this.state;
-    const clipPathId = `ImageLayer${src.replace(/\W/g, '-')}`;
-
-    const displayWidth = width !== null ? width : naturalWidth;
-    const displayHeight = height !== null ? height : naturalHeight;
 
     return (
-      <React.Fragment>
-        <clipPath id={clipPathId}>
-          <rect width={displayWidth} height={displayHeight} />
-        </clipPath>
-        <image
-          clipPath={`url(#${clipPathId})`}
-          href={src}
-          x={imageOffsetX}
-          y={imageOffsetY}
-          width={naturalWidth}
-          height={naturalHeight}
-          {...otherProps}
-        />
-      </React.Fragment>
+      <image
+        href={src}
+        width={naturalWidth}
+        height={naturalHeight}
+        {...otherProps}
+      />
     );
   }
 }
 
 ImageLayer.propTypes = {
-  height: PropTypes.number,
-  imageOffsetX: PropTypes.number,
-  imageOffsetY: PropTypes.number,
   onLoad: PropTypes.func,
   src: PropTypes.string.isRequired,
-  width: PropTypes.number,
 };
 
 ImageLayer.defaultProps = {
-  height: null,
-  imageOffsetX: 0,
-  imageOffsetY: 0,
   onLoad: () => {},
-  width: null,
 };
 
 ImageLayer.rseType = 'ImageLayer';
