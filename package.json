@@ -1,7 +1,7 @@
 {
   "name": "react-shape-editor",
   "description": "Simple shape editor component",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "scripts": {
     "start": "parcel website/index.html",
     "build": "rollup -c",

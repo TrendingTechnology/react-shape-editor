@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [1.0.0](https://github.com/fritz-c/react-shape-editor/compare/v0.1.0...v1.0.0) (2019-04-17)
+
+
+### Bug Fixes
+
+* make it work in IE11 ([a1dd766](https://github.com/fritz-c/react-shape-editor/commit/a1dd766))
+* prevent bug where focus would snap to other shape on click ([cb9b6d0](https://github.com/fritz-c/react-shape-editor/commit/cb9b6d0))
+
+
+### Code Refactoring
+
+* move DrawLayer out into its own component ([8b4ab74](https://github.com/fritz-c/react-shape-editor/commit/8b4ab74))
+* move image layer into its own component ([c2a4270](https://github.com/fritz-c/react-shape-editor/commit/c2a4270))
+
+
+### Features
+
+* allow custom onFocus/onBlur logic ([b1a8d7c](https://github.com/fritz-c/react-shape-editor/commit/b1a8d7c))
+* allow for custom corner component ([448ca64](https://github.com/fritz-c/react-shape-editor/commit/448ca64))
+* implement refocus after deletion, focusing on the previous shape in order ([e6e00fc](https://github.com/fritz-c/react-shape-editor/commit/e6e00fc))
+* modify deletion focus logic to go to closest neighbor position-wise ([a6ae2ff](https://github.com/fritz-c/react-shape-editor/commit/a6ae2ff))
+
+
+### Performance Improvements
+
+* fix slow image rendering performance ([28bae81](https://github.com/fritz-c/react-shape-editor/commit/28bae81))
+
+
+### BREAKING CHANGES
+
+* DrawLayer must be added manually, and many props were
+accordingly migrated away from ShapeEditor to their corresponding
+components
+* planeImageSrc no longer works. Use ImageLayer instead
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 # 0.1.0 (2019-04-15)
 
 
