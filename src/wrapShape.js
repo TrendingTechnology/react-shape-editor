@@ -309,10 +309,8 @@ function wrapShape(WrappedComponent) {
         (sides.right - sides.left) * scale > cornerSize * 2;
       // Generate drag handles
       const handles = [
+        hasSpaciousVertical && ['w', 'nw', 'ew-resize', 0, height / 2, 'y'],
         hasSpaciousHorizontal && ['n', 'ne', 'ns-resize', width / 2, 0, 'x'],
-        ['ne', 'ne', 'nesw-resize', width, 0, null],
-        hasSpaciousVertical && ['e', 'se', 'ew-resize', width, height / 2, 'y'],
-        ['se', 'se', 'nwse-resize', width, height, null],
         hasSpaciousHorizontal && [
           's',
           'sw',
@@ -321,9 +319,11 @@ function wrapShape(WrappedComponent) {
           height,
           'x',
         ],
-        ['sw', 'sw', 'nesw-resize', 0, height, null],
-        hasSpaciousVertical && ['w', 'nw', 'ew-resize', 0, height / 2, 'y'],
+        hasSpaciousVertical && ['e', 'se', 'ew-resize', width, height / 2, 'y'],
         ['nw', 'nw', 'nwse-resize', 0, 0, null],
+        ['ne', 'ne', 'nesw-resize', width, 0, null],
+        ['sw', 'sw', 'nesw-resize', 0, height, null],
+        ['se', 'se', 'nwse-resize', width, height, null],
       ]
         .filter(a => a)
         .map(
