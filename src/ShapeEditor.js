@@ -27,8 +27,11 @@ class ShapeEditor extends Component {
       );
 
       if (newShapeKeys.length > 0) {
-        // When new shape(s) were added, focus on the first one
-        this.nextWrappedShapes[newShapeKeys[0]].forceFocus();
+        // When a single new shape was added (i.e., not the initial render
+        // of a bunch), focus on it
+        if (newShapeKeys.length === 1) {
+          this.nextWrappedShapes[newShapeKeys[0]].forceFocus();
+        }
       } else {
         const deletedShapeKeys = Object.keys(this.wrappedShapes).filter(
           key => !this.nextWrappedShapes[key]
@@ -72,6 +75,9 @@ class ShapeEditor extends Component {
   componentWillUnmount() {
     window.removeEventListener('mouseup', this.onMouseEvent);
     window.removeEventListener('mousemove', this.onMouseEvent);
+
+    this.wrappedShapes = {};
+    this.nextWrappedShapes = {};
     this.unmounted = true;
   }
 
