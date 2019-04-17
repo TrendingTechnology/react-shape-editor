@@ -54,7 +54,14 @@ class ShapeEditor extends Component {
   }
 
   render() {
-    const { children, scale, vectorHeight, vectorWidth } = this.props;
+    const {
+      children,
+      scale,
+      vectorHeight,
+      vectorWidth,
+      style,
+      ...otherProps
+    } = this.props;
 
     const setMouseHandler = mouseHandler => {
       this.mouseHandler = mouseHandler;
@@ -70,9 +77,11 @@ class ShapeEditor extends Component {
         }}
         style={{
           userSelect: 'none',
+          ...style,
         }}
         // IE11 - prevent all elements from being focusable by default
         focusable={false}
+        {...otherProps}
       >
         {React.Children.map(children, child => {
           switch (child.type.rseType) {
@@ -105,6 +114,7 @@ class ShapeEditor extends Component {
 ShapeEditor.propTypes = {
   children: PropTypes.node,
   scale: PropTypes.number,
+  style: PropTypes.shape({}),
   vectorHeight: PropTypes.number,
   vectorWidth: PropTypes.number,
 };
@@ -112,6 +122,7 @@ ShapeEditor.propTypes = {
 ShapeEditor.defaultProps = {
   children: null,
   scale: 1,
+  style: {},
   vectorHeight: 0,
   vectorWidth: 0,
 };
