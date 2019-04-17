@@ -5,8 +5,8 @@ class ShapeEditor extends Component {
   constructor(props) {
     super(props);
 
-    this.childRefs = {};
-    this.nextChildRefs = {};
+    this.wrappedShapes = {};
+    this.nextWrappedShapes = {};
 
     this.onMouseEvent = this.onMouseEvent.bind(this);
     this.getPlaneCoordinatesFromEvent = this.getPlaneCoordinatesFromEvent.bind(
@@ -21,14 +21,44 @@ class ShapeEditor extends Component {
 
   componentDidUpdate() {
     // Focus on newly added children
-    const newChildrenKeys = Object.keys(this.nextChildRefs).filter(
-      key => !this.childRefs[key]
+    const newShapeKeys = Object.keys(this.nextWrappedShapes).filter(
+      key => !this.wrappedShapes[key]
     );
-    if (newChildrenKeys.length > 0) {
-      this.nextChildRefs[newChildrenKeys[0]].forceFocus();
+
+    if (newShapeKeys.length > 0) {
+      // When new shape(s) were added, focus on the first one
+      this.nextWrappedShapes[newShapeKeys[0]].forceFocus();
+    } else {
+      const oldKeys = Object.keys(this.wrappedShapes);
+      const nextKeys = Object.keys(this.nextWrappedShapes);
+
+      // If something was deleted, focus on the shape before or after it
+      if (oldKeys.length !== nextKeys.length) {
+        let closestKeyToDeletedKey = null;
+        let deletedOneFound = false;
+
+        for (
+          let i = 0;
+          i < oldKeys.length &&
+          (closestKeyToDeletedKey === null || !deletedOneFound);
+          i += 1
+        ) {
+          const key = oldKeys[i];
+          if (!this.nextWrappedShapes[key]) {
+            deletedOneFound = true;
+          } else {
+            closestKeyToDeletedKey = key;
+          }
+        }
+
+        if (this.nextWrappedShapes[closestKeyToDeletedKey]) {
+          this.nextWrappedShapes[closestKeyToDeletedKey].forceFocus();
+        }
+      }
     }
-    this.childRefs = this.nextChildRefs;
-    this.nextChildRefs = {};
+
+    this.wrappedShapes = this.nextWrappedShapes;
+    this.nextWrappedShapes = {};
   }
 
   componentWillUnmount() {
@@ -97,7 +127,10 @@ class ShapeEditor extends Component {
               return React.cloneElement(child, {
                 getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
                 ref: reactObj => {
-                  this.nextChildRefs[child.key] = reactObj;
+                  // Sometimes reactObj will be null (after deletion), so we check here first
+                  if (reactObj) {
+                    this.nextWrappedShapes[child.key] = reactObj;
+                  }
                 },
                 scale,
                 setMouseHandler,
