@@ -256,6 +256,7 @@ function wrapShape(WrappedComponent) {
         onKeyDown,
         ResizeHandleComponent,
         setMouseHandler,
+        wrapperProps,
         ...otherProps
       } = this.props;
       const {
@@ -447,6 +448,7 @@ function wrapShape(WrappedComponent) {
               event.preventDefault();
             }
           }}
+          {...wrapperProps}
         >
           <WrappedComponent
             isBeingChanged={isMouseDown}
@@ -477,6 +479,7 @@ function wrapShape(WrappedComponent) {
     scale: PropTypes.number,
     setMouseHandler: PropTypes.func,
     width: PropTypes.number.isRequired,
+    wrapperProps: PropTypes.shape({}),
     x: PropTypes.number.isRequired,
     y: PropTypes.number.isRequired,
   };
@@ -495,6 +498,7 @@ function wrapShape(WrappedComponent) {
     ResizeHandleComponent: DefaultResizeHandleComponent,
     scale: 1,
     setMouseHandler: () => {},
+    wrapperProps: {},
   };
 
   WrappedShape.rseType = 'WrappedShape';
