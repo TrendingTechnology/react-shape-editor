@@ -8,6 +8,7 @@ class ShapeEditor extends Component {
     this.wrappedShapes = {};
     this.nextWrappedShapes = {};
 
+    this.setMouseHandler = this.setMouseHandler.bind(this);
     this.onMouseEvent = this.onMouseEvent.bind(this);
     this.getPlaneCoordinatesFromEvent = this.getPlaneCoordinatesFromEvent.bind(
       this
@@ -87,6 +88,10 @@ class ShapeEditor extends Component {
     }
   }
 
+  setMouseHandler(mouseHandler) {
+    this.mouseHandler = mouseHandler;
+  }
+
   getPlaneCoordinatesFromEvent(event, { x: offsetX = 0, y: offsetY = 0 } = {}) {
     const { scale } = this.props;
     const { top, left } = this.svgEl.getBoundingClientRect();
@@ -107,9 +112,6 @@ class ShapeEditor extends Component {
       ...otherProps
     } = this.props;
 
-    const setMouseHandler = mouseHandler => {
-      this.mouseHandler = mouseHandler;
-    };
     return (
       <svg
         className="rse-plane-container"
@@ -135,7 +137,7 @@ class ShapeEditor extends Component {
                 vectorHeight,
                 vectorWidth,
                 scale,
-                setMouseHandler,
+                setMouseHandler: this.setMouseHandler,
               });
             case 'WrappedShape':
               return React.cloneElement(child, {
@@ -147,7 +149,7 @@ class ShapeEditor extends Component {
                   }
                 },
                 scale,
-                setMouseHandler,
+                setMouseHandler: this.setMouseHandler,
               });
             default:
               return child;
