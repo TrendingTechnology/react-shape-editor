@@ -16,7 +16,7 @@ const defaultDragState = {
 };
 
 function wrapShape(WrappedComponent) {
-  const WrappedShape = class extends React.Component {
+  const WrappedShape = class extends React.PureComponent {
     constructor(props) {
       super(props);
 
