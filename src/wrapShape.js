@@ -426,7 +426,7 @@ function wrapShape(WrappedComponent) {
                 : this.keyboardMove(...moveArgs);
             switch (event.key) {
               case 'Backspace':
-                onDelete();
+                onDelete(event);
                 break;
               case 'ArrowUp':
                 handleKeyboardTransform([0, -1], [0, -1]);
