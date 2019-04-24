@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [1.1.0](https://github.com/fritz-c/react-shape-editor/compare/v1.0.1...v1.1.0) (2019-04-24)
+
+
+### Features
+
+* add wrapperProps prop to give props directly to wrapper ([4be6f1e](https://github.com/fritz-c/react-shape-editor/commit/4be6f1e))
+* pass the event object that triggered onDelete to the callback ([6201a68](https://github.com/fritz-c/react-shape-editor/commit/6201a68))
+
+
+### Performance Improvements
+
+* use React.PureComponent in the wrapper for performance ([622ae10](https://github.com/fritz-c/react-shape-editor/commit/622ae10))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [1.0.1](https://github.com/fritz-c/react-shape-editor/compare/v1.0.0...v1.0.1) (2019-04-17)
 
 
