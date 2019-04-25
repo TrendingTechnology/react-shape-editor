@@ -381,11 +381,11 @@ function wrapShape(WrappedComponent) {
           tabIndex={!disabled ? 0 : undefined}
           onFocus={event => {
             this.setState({ active: true });
-            onFocus(event);
+            onFocus(event, this.props);
           }}
           onBlur={event => {
             this.setState({ active: false });
-            onBlur(event);
+            onBlur(event, this.props);
           }}
           onMouseDown={event => {
             event.stopPropagation();
@@ -411,7 +411,7 @@ function wrapShape(WrappedComponent) {
             });
           }}
           onKeyDown={event => {
-            onKeyDown(event);
+            onKeyDown(event, this.props);
 
             // If the user-defined callback called event.preventDefault(),
             // we consider the event handled
@@ -426,7 +426,7 @@ function wrapShape(WrappedComponent) {
                 : this.keyboardMove(...moveArgs);
             switch (event.key) {
               case 'Backspace':
-                onDelete(event);
+                onDelete(event, this.props);
                 break;
               case 'ArrowUp':
                 handleKeyboardTransform([0, -1], [0, -1]);
