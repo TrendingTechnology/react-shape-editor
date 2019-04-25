@@ -3,6 +3,13 @@ import { ShapeEditor, ImageLayer, DrawLayer } from '../src';
 import RectShape from './RectShape';
 import bgImage from './blank.png';
 
+// if (process.env.NODE_ENV !== 'production') {
+//   const { whyDidYouUpdate } = require('why-did-you-update');
+//   whyDidYouUpdate(React, {
+//     // include: [/^WrappedSh/],
+//   });
+// }
+
 let iterator = 0;
 
 function arrayReplace(arr, index, item) {
@@ -12,6 +19,7 @@ function arrayReplace(arr, index, item) {
     ...arr.slice(index + 1),
   ];
 }
+const to5 = n => Math.floor(n / 5) * 5;
 
 class App extends Component {
   constructor(props) {
@@ -29,6 +37,44 @@ class App extends Component {
       vectorWidth: 0,
       vectorHeight: 0,
     };
+
+    this.constrainMove = this.constrainMove.bind(this);
+    this.constrainResize = this.constrainResize.bind(this);
+    this.onShapeChange = this.onShapeChange.bind(this);
+    this.onShapeDelete = this.onShapeDelete.bind(this);
+  }
+
+  constrainMove({ x, y, width, height }) {
+    const { vectorWidth, vectorHeight } = this.state;
+    return {
+      x: to5(Math.min(vectorWidth - width, Math.max(0, x))),
+      y: to5(Math.min(vectorHeight - height, Math.max(0, y))),
+    };
+  }
+
+  constrainResize({ movingCorner: { x: movingX, y: movingY } }) {
+    const { vectorWidth, vectorHeight } = this.state;
+    return {
+      x: to5(Math.min(vectorWidth, Math.max(0, movingX))),
+      y: to5(Math.min(vectorHeight, Math.max(0, movingY))),
+    };
+  }
+
+  onShapeChange(newRect, shapeProps) {
+    const item = this.state.items[shapeProps.shapeIndex];
+
+    this.setState(state => ({
+      items: arrayReplace(state.items, shapeProps.shapeIndex, {
+        ...item,
+        ...newRect,
+      }),
+    }));
+  }
+
+  onShapeDelete(event, shapeProps) {
+    this.setState(state => ({
+      items: arrayReplace(state.items, shapeProps.shapeIndex, []),
+    }));
   }
 
   render() {
@@ -40,16 +86,6 @@ class App extends Component {
         scale: Math.max(MIN_SCALE, Math.min(MAX_SCALE, state.scale * ratio)),
       }));
     const { scale, items, vectorWidth, vectorHeight } = this.state;
-    const to5 = n => Math.floor(n / 5) * 5;
-
-    const constrainMove = ({ x, y, width, height }) => ({
-      x: to5(Math.min(vectorWidth - width, Math.max(0, x))),
-      y: to5(Math.min(vectorHeight - height, Math.max(0, y))),
-    });
-    const constrainResize = ({ movingCorner: { x: movingX, y: movingY } }) => ({
-      x: to5(Math.min(vectorWidth, Math.max(0, movingX))),
-      y: to5(Math.min(vectorHeight, Math.max(0, movingY))),
-    });
 
     return (
       <div className="wrapper">
@@ -109,8 +145,8 @@ class App extends Component {
               }}
             />
             <DrawLayer
-              constrainMove={constrainMove}
-              constrainResize={constrainResize}
+              constrainMove={this.constrainMove}
+              constrainResize={this.constrainResize}
               onAddShape={({ x, y, width, height }) => {
                 this.setState(state => ({
                   items: [
@@ -130,22 +166,12 @@ class App extends Component {
                   height={height}
                   x={x}
                   y={y}
+                  shapeIndex={index}
                   keyboardTransformMultiplier={5}
-                  constrainMove={constrainMove}
-                  constrainResize={constrainResize}
-                  onChange={newRect => {
-                    this.setState(state => ({
-                      items: arrayReplace(state.items, index, {
-                        ...item,
-                        ...newRect,
-                      }),
-                    }));
-                  }}
-                  onDelete={() => {
-                    this.setState(state => ({
-                      items: arrayReplace(state.items, index, []),
-                    }));
-                  }}
+                  constrainMove={this.constrainMove}
+                  constrainResize={this.constrainResize}
+                  onChange={this.onShapeChange}
+                  onDelete={this.onShapeDelete}
                   {...otherProps}
                 />
               );

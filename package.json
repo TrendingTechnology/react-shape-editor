@@ -101,7 +101,8 @@
     "rollup-plugin-babel": "^4.0.3",
     "rollup-plugin-commonjs": "^9.1.3",
     "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-postcss": "^1.6.2"
+    "rollup-plugin-postcss": "^1.6.2",
+    "why-did-you-update": "^1.0.6"
   },
   "keywords": [
     "react",
