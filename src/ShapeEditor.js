@@ -130,6 +130,10 @@ class ShapeEditor extends Component {
         {...otherProps}
       >
         {React.Children.map(children, child => {
+          if (!child) {
+            return child;
+          }
+
           switch (child.type.rseType) {
             case 'DrawLayer':
               return React.cloneElement(child, {
