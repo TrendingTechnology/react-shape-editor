@@ -5,6 +5,7 @@ import {
   defaultConstrainMove,
   defaultConstrainResize,
 } from './utils';
+import withContext from './withContext';
 import wrapShape from './wrapShape';
 
 const DefaultDrawComponent = wrapShape(({ height, width }) => (
@@ -168,25 +169,18 @@ DrawLayer.propTypes = {
   constrainMove: PropTypes.func,
   constrainResize: PropTypes.func,
   DrawPreviewComponent: PropTypes.func,
-  getPlaneCoordinatesFromEvent: PropTypes.func,
+  getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
   onAddShape: PropTypes.func.isRequired,
-  scale: PropTypes.number,
-  setMouseHandler: PropTypes.func,
-  vectorHeight: PropTypes.number,
-  vectorWidth: PropTypes.number,
+  scale: PropTypes.number.isRequired,
+  setMouseHandler: PropTypes.func.isRequired,
+  vectorHeight: PropTypes.number.isRequired,
+  vectorWidth: PropTypes.number.isRequired,
 };
 
 DrawLayer.defaultProps = {
   constrainMove: defaultConstrainMove,
   constrainResize: defaultConstrainResize,
   DrawPreviewComponent: DefaultDrawComponent,
-  getPlaneCoordinatesFromEvent: () => {},
-  scale: 1,
-  setMouseHandler: () => {},
-  vectorHeight: 0,
-  vectorWidth: 0,
 };
 
-DrawLayer.rseType = 'DrawLayer';
-
-export default DrawLayer;
+export default withContext(DrawLayer);

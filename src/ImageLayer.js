@@ -73,6 +73,4 @@ ImageLayer.defaultProps = {
   onLoad: () => {},
 };
 
-ImageLayer.rseType = 'ImageLayer';
-
 export default ImageLayer;

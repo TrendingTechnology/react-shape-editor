@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import DefaultResizeHandleComponent from './DefaultResizeHandleComponent';
+import withContext from './withContext';
 import {
   getRectFromCornerCoordinates,
   defaultConstrainMove,
@@ -40,8 +41,13 @@ function wrapShape(WrappedComponent) {
       this.mouseHandler = this.mouseHandler.bind(this);
     }
 
+    componentDidMount() {
+      this.props.onShapeMountedOrUnmounted(this, true);
+    }
+
     componentWillUnmount() {
       this.unmounted = true;
+      this.props.onShapeMountedOrUnmounted(this, false);
     }
 
     onMouseMove(event) {
@@ -467,7 +473,7 @@ function wrapShape(WrappedComponent) {
     constrainMove: PropTypes.func,
     constrainResize: PropTypes.func,
     disabled: PropTypes.bool,
-    getPlaneCoordinatesFromEvent: PropTypes.func,
+    getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
     height: PropTypes.number.isRequired,
     keyboardTransformMultiplier: PropTypes.number,
     onBlur: PropTypes.func,
@@ -475,9 +481,10 @@ function wrapShape(WrappedComponent) {
     onDelete: PropTypes.func,
     onFocus: PropTypes.func,
     onKeyDown: PropTypes.func,
+    onShapeMountedOrUnmounted: PropTypes.func.isRequired,
     ResizeHandleComponent: PropTypes.func,
-    scale: PropTypes.number,
-    setMouseHandler: PropTypes.func,
+    scale: PropTypes.number.isRequired,
+    setMouseHandler: PropTypes.func.isRequired,
     width: PropTypes.number.isRequired,
     wrapperProps: PropTypes.shape({}),
     x: PropTypes.number.isRequired,
@@ -488,7 +495,6 @@ function wrapShape(WrappedComponent) {
     constrainMove: defaultConstrainMove,
     constrainResize: defaultConstrainResize,
     disabled: false,
-    getPlaneCoordinatesFromEvent: () => {},
     keyboardTransformMultiplier: 1,
     onBlur: () => {},
     onChange: () => {},
@@ -496,14 +502,10 @@ function wrapShape(WrappedComponent) {
     onFocus: () => {},
     onKeyDown: () => {},
     ResizeHandleComponent: DefaultResizeHandleComponent,
-    scale: 1,
-    setMouseHandler: () => {},
     wrapperProps: {},
   };
 
-  WrappedShape.rseType = 'WrappedShape';
-
-  return WrappedShape;
+  return withContext(WrappedShape);
 }
 
 export default wrapShape;

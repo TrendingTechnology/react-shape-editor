@@ -1,90 +1,103 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
+export const CallbacksContext = React.createContext({
+  onShapeMountedOrUnmounted: () => {},
+  getPlaneCoordinatesFromEvent: () => {},
+  setMouseHandler: () => {},
+});
+export const VectorHeightContext = React.createContext(0);
+export const VectorWidthContext = React.createContext(0);
+export const ScaleContext = React.createContext(1);
+
 class ShapeEditor extends Component {
   constructor(props) {
     super(props);
 
-    this.wrappedShapes = {};
-    this.nextWrappedShapes = {};
+    this.wrappedShapes = [];
+    this.justAddedShapes = [];
 
-    this.setMouseHandler = this.setMouseHandler.bind(this);
-    this.onMouseEvent = this.onMouseEvent.bind(this);
     this.getPlaneCoordinatesFromEvent = this.getPlaneCoordinatesFromEvent.bind(
       this
     );
+    this.onMouseEvent = this.onMouseEvent.bind(this);
+    this.onShapeMountedOrUnmounted = this.onShapeMountedOrUnmounted.bind(this);
+    this.setMouseHandler = this.setMouseHandler.bind(this);
+
+    this.callbacks = {
+      onShapeMountedOrUnmounted: this.onShapeMountedOrUnmounted,
+      getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
+      setMouseHandler: this.setMouseHandler,
+    };
   }
 
   componentDidMount() {
-    this.wrappedShapes = this.nextWrappedShapes;
-    this.nextWrappedShapes = {};
-
     window.addEventListener('mouseup', this.onMouseEvent);
     window.addEventListener('mousemove', this.onMouseEvent);
   }
 
   componentDidUpdate() {
-    if (Object.keys(this.nextWrappedShapes).length > 0) {
-      // Focus on newly added children
-      const newShapeKeys = Object.keys(this.nextWrappedShapes).filter(
-        key => !this.wrappedShapes[key]
-      );
+    if (this.justAddedShapes.length > 0) {
+      // Focus on shapes added since the last update
+      this.justAddedShapes.slice(-1)[0].forceFocus();
+    } else if (this.lastDeletedRect) {
+      // If something was deleted since the last update, focus on the
+      // next closest shape by center coordinates
+      const getShapeCenter = shape => ({
+        x: shape.x + shape.width / 2,
+        y: shape.y + shape.height / 2,
+      });
+      const deletedShapeCenter = getShapeCenter(this.lastDeletedRect);
 
-      if (newShapeKeys.length > 0) {
-        // When new shape(s) were added, focus on the first one
-        this.nextWrappedShapes[newShapeKeys[0]].forceFocus();
-      } else {
-        const deletedShapeKeys = Object.keys(this.wrappedShapes).filter(
-          key => !this.nextWrappedShapes[key]
-        );
-
-        // If something was deleted, focus on the next closest shape
-        // by center coordinates
-        if (deletedShapeKeys.length > 0) {
-          const getShapeCenter = shape => ({
-            x: shape.props.x + shape.props.width / 2,
-            y: shape.props.y + shape.props.height / 2,
-          });
-          const deletedShapeCenter = getShapeCenter(
-            this.wrappedShapes[deletedShapeKeys[0]]
-          );
-
-          let closestDistance = Math.MAX_SAFE_INTEGER || 2 ** 53 - 1;
-          let closestKeyToDeletedKey = null;
-          Object.keys(this.nextWrappedShapes).forEach(key => {
-            const shapeCenter = getShapeCenter(this.nextWrappedShapes[key]);
-            const distance =
-              (deletedShapeCenter.x - shapeCenter.x) ** 2 +
-              (deletedShapeCenter.y - shapeCenter.y) ** 2;
-            if (distance < closestDistance) {
-              closestDistance = distance;
-              closestKeyToDeletedKey = key;
-            }
-          });
-
-          if (this.nextWrappedShapes[closestKeyToDeletedKey]) {
-            this.nextWrappedShapes[closestKeyToDeletedKey].forceFocus();
-          }
+      let closestDistance = Math.MAX_SAFE_INTEGER || 2 ** 53 - 1;
+      let closestShape = null;
+      this.wrappedShapes.forEach(shape => {
+        const shapeCenter = getShapeCenter(shape.props);
+        const distance =
+          (deletedShapeCenter.x - shapeCenter.x) ** 2 +
+          (deletedShapeCenter.y - shapeCenter.y) ** 2;
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestShape = shape;
         }
+      });
+
+      if (closestShape) {
+        closestShape.forceFocus();
       }
     }
 
-    this.wrappedShapes = this.nextWrappedShapes;
-    this.nextWrappedShapes = {};
+    this.justAddedShapes = [];
+    this.lastDeletedRect = null;
   }
 
   componentWillUnmount() {
     window.removeEventListener('mouseup', this.onMouseEvent);
     window.removeEventListener('mousemove', this.onMouseEvent);
 
-    this.wrappedShapes = {};
-    this.nextWrappedShapes = {};
+    this.justAddedShapes = [];
+    this.wrappedShapes = [];
     this.unmounted = true;
   }
 
   onMouseEvent(event) {
     if (typeof this.mouseHandler === 'function') {
       this.mouseHandler(event);
+    }
+  }
+
+  onShapeMountedOrUnmounted(instance, didMount) {
+    if (didMount) {
+      this.justAddedShapes = [...this.justAddedShapes, instance];
+      this.wrappedShapes = [...this.wrappedShapes, instance];
+    } else {
+      this.lastDeletedRect = {
+        x: instance.props.x,
+        y: instance.props.y,
+        width: instance.props.width,
+        height: instance.props.height,
+      };
+      this.wrappedShapes = this.wrappedShapes.filter(s => s !== instance);
     }
   }
 
@@ -129,36 +142,15 @@ class ShapeEditor extends Component {
         focusable={false}
         {...otherProps}
       >
-        {React.Children.map(children, child => {
-          if (!child) {
-            return child;
-          }
-
-          switch (child.type.rseType) {
-            case 'DrawLayer':
-              return React.cloneElement(child, {
-                getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
-                vectorHeight,
-                vectorWidth,
-                scale,
-                setMouseHandler: this.setMouseHandler,
-              });
-            case 'WrappedShape':
-              return React.cloneElement(child, {
-                getPlaneCoordinatesFromEvent: this.getPlaneCoordinatesFromEvent,
-                ref: reactObj => {
-                  // Sometimes reactObj will be null (after deletion), so we check here first
-                  if (reactObj) {
-                    this.nextWrappedShapes[child.key] = reactObj;
-                  }
-                },
-                scale,
-                setMouseHandler: this.setMouseHandler,
-              });
-            default:
-              return child;
-          }
-        })}
+        <CallbacksContext.Provider value={this.callbacks}>
+          <VectorHeightContext.Provider value={vectorHeight}>
+            <VectorWidthContext.Provider value={vectorWidth}>
+              <ScaleContext.Provider value={scale}>
+                {children}
+              </ScaleContext.Provider>
+            </VectorWidthContext.Provider>
+          </VectorHeightContext.Provider>
+        </CallbacksContext.Provider>
       </svg>
     );
   }
