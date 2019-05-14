@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 export const CallbacksContext = React.createContext({
-  onShapeMountedOrUnmounted: () => {},
   getPlaneCoordinatesFromEvent: () => {},
+  onShapeMountedOrUnmounted: () => {},
   setMouseHandler: () => {},
 });
 export const VectorHeightContext = React.createContext(0);

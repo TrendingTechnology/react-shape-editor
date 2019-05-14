@@ -42,12 +42,17 @@ function wrapShape(WrappedComponent) {
     }
 
     componentDidMount() {
-      this.props.onShapeMountedOrUnmounted(this, true);
+      if (!this.props.isInternalComponent) {
+        this.props.onShapeMountedOrUnmounted(this, true);
+      }
     }
 
     componentWillUnmount() {
       this.unmounted = true;
-      this.props.onShapeMountedOrUnmounted(this, false);
+
+      if (!this.props.isInternalComponent) {
+        this.props.onShapeMountedOrUnmounted(this, false);
+      }
     }
 
     onMouseMove(event) {
@@ -475,6 +480,7 @@ function wrapShape(WrappedComponent) {
     disabled: PropTypes.bool,
     getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
     height: PropTypes.number.isRequired,
+    isInternalComponent: PropTypes.bool,
     keyboardTransformMultiplier: PropTypes.number,
     onBlur: PropTypes.func,
     onChange: PropTypes.func,
@@ -495,6 +501,7 @@ function wrapShape(WrappedComponent) {
     constrainMove: defaultConstrainMove,
     constrainResize: defaultConstrainResize,
     disabled: false,
+    isInternalComponent: false,
     keyboardTransformMultiplier: 1,
     onBlur: () => {},
     onChange: () => {},

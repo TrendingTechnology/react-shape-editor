@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ShapeEditor, ImageLayer, DrawLayer } from '../src';
+import { ShapeEditor, ImageLayer, DrawLayer, SelectionLayer } from '../src';
 import RectShape from './RectShape';
 import bgImage from './blank.png';
 
@@ -144,6 +144,8 @@ class App extends Component {
                 });
               }}
             />
+
+            {/*
             <DrawLayer
               constrainMove={this.constrainMove}
               constrainResize={this.constrainResize}
@@ -157,25 +159,33 @@ class App extends Component {
                 iterator += 1;
               }}
             />
-            {items.map((item, index) => {
-              const { id, width, height, x, y, ...otherProps } = item;
-              return (
-                <RectShape
-                  key={id}
-                  width={width}
-                  height={height}
-                  x={x}
-                  y={y}
-                  shapeIndex={index}
-                  keyboardTransformMultiplier={5}
-                  constrainMove={this.constrainMove}
-                  constrainResize={this.constrainResize}
-                  onChange={this.onShapeChange}
-                  onDelete={this.onShapeDelete}
-                  {...otherProps}
-                />
-              );
-            })}
+            */}
+
+            <SelectionLayer
+              onSelectionChange={() => {}}
+              onResize={() => {}}
+              onMove={() => {}}
+            >
+              {items.map((item, index) => {
+                const { id, width, height, x, y, ...otherProps } = item;
+                return (
+                  <RectShape
+                    key={id}
+                    width={width}
+                    height={height}
+                    x={x}
+                    y={y}
+                    shapeIndex={index}
+                    keyboardTransformMultiplier={5}
+                    constrainMove={this.constrainMove}
+                    constrainResize={this.constrainResize}
+                    onChange={this.onShapeChange}
+                    onDelete={this.onShapeDelete}
+                    {...otherProps}
+                  />
+                );
+              })}
+            </SelectionLayer>
           </ShapeEditor>
         </div>
       </div>

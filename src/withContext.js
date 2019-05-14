@@ -7,7 +7,7 @@ import {
 } from './ShapeEditor';
 
 function withContext(Component) {
-  function WrappedThing(props) {
+  function ComponentWithRseContext(props) {
     const callbacks = useContext(CallbacksContext);
     const vectorHeight = useContext(VectorHeightContext);
     const vectorWidth = useContext(VectorWidthContext);
@@ -23,7 +23,7 @@ function withContext(Component) {
     );
   }
 
-  return WrappedThing;
+  return ComponentWithRseContext;
 }
 
 export default withContext;

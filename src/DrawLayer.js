@@ -154,6 +154,7 @@ class DrawLayer extends Component {
           <DrawPreviewComponent
             height={draggedRect.height}
             disabled
+            isInternalComponent
             scale={scale}
             width={draggedRect.width}
             x={draggedRect.x}
