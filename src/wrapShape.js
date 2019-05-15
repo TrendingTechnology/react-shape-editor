@@ -490,6 +490,7 @@ function wrapShape(WrappedComponent) {
     onShapeMountedOrUnmounted: PropTypes.func.isRequired,
     ResizeHandleComponent: PropTypes.func,
     scale: PropTypes.number.isRequired,
+    shapeId: PropTypes.string.isRequired,
     setMouseHandler: PropTypes.func.isRequired,
     width: PropTypes.number.isRequired,
     wrapperProps: PropTypes.shape({}),
@@ -511,6 +512,10 @@ function wrapShape(WrappedComponent) {
     ResizeHandleComponent: DefaultResizeHandleComponent,
     wrapperProps: {},
   };
+
+  WrappedShape.displayName = `wrapShape(${WrappedComponent.displayName ||
+    WrappedComponent.name ||
+    'Component'})`;
 
   return withContext(WrappedShape);
 }

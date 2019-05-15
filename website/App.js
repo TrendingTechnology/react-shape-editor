@@ -28,7 +28,7 @@ class App extends Component {
     this.state = {
       scale: 0.75,
       items: [...new Array(100)].map((_, index) => ({
-        id: index,
+        id: String(index),
         x: Math.random() * 1500,
         y: Math.random() * 1500,
         width: 150,
@@ -171,16 +171,17 @@ class App extends Component {
                 return (
                   <RectShape
                     key={id}
-                    width={width}
-                    height={height}
-                    x={x}
-                    y={y}
-                    shapeIndex={index}
-                    keyboardTransformMultiplier={5}
                     constrainMove={this.constrainMove}
                     constrainResize={this.constrainResize}
+                    height={height}
+                    keyboardTransformMultiplier={5}
                     onChange={this.onShapeChange}
                     onDelete={this.onShapeDelete}
+                    shapeId={id}
+                    shapeIndex={index}
+                    width={width}
+                    x={x}
+                    y={y}
                     {...otherProps}
                   />
                 );

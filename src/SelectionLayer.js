@@ -156,6 +156,7 @@ class SelectionLayer extends Component {
     if (isMouseDown) {
       extra = (
         <SelectionDrawComponent
+          shapeId="rse-internal-selection-draw-component"
           disabled
           height={draggedRect.height}
           isInternalComponent
@@ -168,6 +169,7 @@ class SelectionLayer extends Component {
     } else if (selectedShapes.length > 0) {
       extra = (
         <SelectionComponent
+          shapeId="rse-internal-selection-component"
           height={selectionHeight}
           isInternalComponent
           scale={scale}

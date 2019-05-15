@@ -156,6 +156,7 @@ class DrawLayer extends Component {
             disabled
             isInternalComponent
             scale={scale}
+            shapeId="rse-internal-draw-component"
             width={draggedRect.width}
             x={draggedRect.x}
             y={draggedRect.y}

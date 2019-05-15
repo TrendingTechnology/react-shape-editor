@@ -23,6 +23,9 @@ function withContext(Component) {
     );
   }
 
+  ComponentWithRseContext.displayName =
+    Component.displayName || Component.name || 'Component';
+
   return ComponentWithRseContext;
 }
 

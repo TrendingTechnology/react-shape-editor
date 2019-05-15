@@ -50,8 +50,8 @@ export default class Editor extends React.Component {
     this.state = {
       scale: 0.75,
       items: [
-        { id: 1, x: 20, y: 50, width: 50, height: 25 },
-        { id: 2, x: 120, y: 0, width: 20, height: 75 },
+        { id: '1', x: 20, y: 50, width: 50, height: 25 },
+        { id: '2', x: 120, y: 0, width: 20, height: 75 },
       ],
       vectorWidth: 0,
       vectorHeight: 0,
@@ -93,6 +93,7 @@ export default class Editor extends React.Component {
             return (
               <RectShape
                 key={id}
+                shapeId={id}
                 height={height}
                 width={width}
                 x={x}
