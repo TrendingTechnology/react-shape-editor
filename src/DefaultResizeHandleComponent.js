@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 const DefaultResizeHandleComponent = ({
   active,
   cursor,
+  isInSelectionGroup,
   onMouseDown,
   recommendedSize,
   scale,
@@ -15,7 +16,7 @@ const DefaultResizeHandleComponent = ({
     height={recommendedSize}
     stroke={active ? 'rgba(53,33,140,1)' : 'rgba(53,33,140,0.3)'}
     strokeWidth={1 / scale}
-    style={{ cursor }}
+    style={{ cursor, opacity: isInSelectionGroup ? 0 : 1 }}
     width={recommendedSize}
     x={x - recommendedSize / 2}
     y={y - recommendedSize / 2}
@@ -27,6 +28,7 @@ const DefaultResizeHandleComponent = ({
 DefaultResizeHandleComponent.propTypes = {
   active: PropTypes.bool,
   cursor: PropTypes.string,
+  isInSelectionGroup: PropTypes.bool,
   onMouseDown: PropTypes.func,
   recommendedSize: PropTypes.number,
   scale: PropTypes.number,
@@ -37,6 +39,7 @@ DefaultResizeHandleComponent.propTypes = {
 DefaultResizeHandleComponent.defaultProps = {
   active: false,
   cursor: undefined,
+  isInSelectionGroup: false,
   onMouseDown: () => {},
   recommendedSize: 0,
   scale: 1,

@@ -24,7 +24,7 @@ function wrapShape(WrappedComponent) {
       this.state = {
         ...defaultDragState,
         isDragToMove: true,
-        active: false,
+        nativeActive: false,
       };
 
       this.onMouseUp = this.onMouseUp.bind(this);
@@ -260,8 +260,11 @@ function wrapShape(WrappedComponent) {
         constrainMove,
         constrainResize,
         getPlaneCoordinatesFromEvent,
+        isInternalComponent,
         onBlur,
         onChange,
+        onChildFocus,
+        onChildToggleSelection,
         onDelete,
         onFocus,
         onKeyDown,
@@ -272,16 +275,21 @@ function wrapShape(WrappedComponent) {
       } = this.props;
       const {
         // props extracted here are still passed to the child
+        active: artificialActive,
         disabled,
+        isInSelectionGroup,
         scale,
         shapeId,
       } = this.props;
       const {
-        active,
+        nativeActive,
         isMouseDown,
         dragStartCoordinates,
         dragCurrentCoordinates,
       } = this.state;
+
+      const active =
+        artificialActive !== null ? artificialActive : nativeActive;
 
       const sides = !isMouseDown
         ? {
@@ -345,6 +353,7 @@ function wrapShape(WrappedComponent) {
               key={handleName}
               active={active}
               cursor={cursor}
+              isInSelectionGroup={isInSelectionGroup}
               onMouseDown={event => {
                 event.stopPropagation();
 
@@ -393,15 +402,27 @@ function wrapShape(WrappedComponent) {
           focusable={!disabled ? true : undefined} // IE11 support
           tabIndex={!disabled ? 0 : undefined}
           onFocus={event => {
-            this.setState({ active: true });
+            onChildFocus(shapeId, isInternalComponent);
+            this.setState({ nativeActive: true });
             onFocus(event, this.props);
           }}
           onBlur={event => {
-            this.setState({ active: false });
+            this.setState({ nativeActive: false });
             onBlur(event, this.props);
           }}
           onMouseDown={event => {
             event.stopPropagation();
+
+            if (event.shiftKey) {
+              onChildToggleSelection(shapeId, isInternalComponent, event);
+
+              // Prevent default to keep this from triggering blur/focus events
+              // on the elements involved, which would otherwise cause a wave
+              // of event listener callbacks that are not needed.
+              event.preventDefault();
+              return;
+            }
+
             const { x, y } = this.props;
             const { x: planeX, y: planeY } = getPlaneCoordinatesFromEvent(
               event
@@ -477,15 +498,19 @@ function wrapShape(WrappedComponent) {
   };
 
   WrappedShape.propTypes = {
+    active: PropTypes.bool,
     constrainMove: PropTypes.func,
     constrainResize: PropTypes.func,
     disabled: PropTypes.bool,
     getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
     height: PropTypes.number.isRequired,
+    isInSelectionGroup: PropTypes.bool,
     isInternalComponent: PropTypes.bool,
     keyboardTransformMultiplier: PropTypes.number,
     onBlur: PropTypes.func,
     onChange: PropTypes.func,
+    onChildFocus: PropTypes.func,
+    onChildToggleSelection: PropTypes.func,
     onDelete: PropTypes.func,
     onFocus: PropTypes.func,
     onKeyDown: PropTypes.func,
@@ -501,13 +526,17 @@ function wrapShape(WrappedComponent) {
   };
 
   WrappedShape.defaultProps = {
+    active: null,
     constrainMove: defaultConstrainMove,
     constrainResize: defaultConstrainResize,
     disabled: false,
+    isInSelectionGroup: false,
     isInternalComponent: false,
     keyboardTransformMultiplier: 1,
     onBlur: () => {},
     onChange: () => {},
+    onChildFocus: () => {},
+    onChildToggleSelection: () => {},
     onDelete: () => {},
     onFocus: () => {},
     onKeyDown: () => {},

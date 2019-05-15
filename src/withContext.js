@@ -7,7 +7,7 @@ import {
 } from './ShapeEditor';
 
 function withContext(Component) {
-  function ComponentWithRseContext(props) {
+  function ComponentWithRseContext(props, ref) {
     const callbacks = useContext(CallbacksContext);
     const vectorHeight = useContext(VectorHeightContext);
     const vectorWidth = useContext(VectorWidthContext);
@@ -16,8 +16,10 @@ function withContext(Component) {
       <Component
         {...props}
         {...callbacks}
+        callbacks={callbacks}
         vectorHeight={vectorHeight}
         vectorWidth={vectorWidth}
+        ref={ref}
         scale={scale}
       />
     );
@@ -26,7 +28,7 @@ function withContext(Component) {
   ComponentWithRseContext.displayName =
     Component.displayName || Component.name || 'Component';
 
-  return ComponentWithRseContext;
+  return React.forwardRef(ComponentWithRseContext);
 }
 
 export default withContext;

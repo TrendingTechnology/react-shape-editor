@@ -34,6 +34,7 @@ class App extends Component {
         width: 150,
         height: 125,
       })),
+      selectedShapeIds: [],
       vectorWidth: 0,
       vectorHeight: 0,
     };
@@ -85,7 +86,18 @@ class App extends Component {
       this.setState(state => ({
         scale: Math.max(MIN_SCALE, Math.min(MAX_SCALE, state.scale * ratio)),
       }));
-    const { scale, items, vectorWidth, vectorHeight } = this.state;
+    const {
+      items,
+      scale,
+      selectedShapeIds,
+      vectorWidth,
+      vectorHeight,
+    } = this.state;
+
+    const selectedIdDict = selectedShapeIds.reduce((acc, id) => {
+      acc[id] = true;
+      return acc;
+    }, {});
 
     return (
       <div className="wrapper">
@@ -162,9 +174,10 @@ class App extends Component {
             */}
 
             <SelectionLayer
-              onSelectionChange={() => {}}
-              onResize={() => {}}
-              onMove={() => {}}
+              selectedShapeIds={selectedShapeIds}
+              onSelectionChange={ids =>
+                this.setState({ selectedShapeIds: ids })
+              }
             >
               {items.map((item, index) => {
                 const { id, width, height, x, y, ...otherProps } = item;
@@ -180,6 +193,10 @@ class App extends Component {
                     shapeId={id}
                     shapeIndex={index}
                     width={width}
+                    active={!!selectedIdDict[id]}
+                    isInSelectionGroup={
+                      selectedShapeIds.length >= 2 && !!selectedIdDict[id]
+                    }
                     x={x}
                     y={y}
                     {...otherProps}

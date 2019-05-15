@@ -6,14 +6,17 @@ import wrapShape from './wrapShape';
 import withContext from './withContext';
 
 const DefaultSelectionDrawComponent = wrapShape(({ height, width }) => (
-  <rect fill="rgba(0,255,0,0.3)" height={height} width={width} />
+  <rect fill="rgba(140,179,255,0.3)" height={height} width={width} />
 ));
 
-const DefaultSelectionComponent = wrapShape(({ height, width, children }) => (
-  <React.Fragment>
-    <rect fill="rgba(255,0,0,0.3)" height={height} width={width} />
-    {children}
-  </React.Fragment>
+const DefaultSelectionComponent = wrapShape(({ height, width }) => (
+  <rect
+    fill="transparent"
+    stroke="rgba(140,179,255,1)"
+    strokeWidth={2}
+    height={height}
+    width={width}
+  />
 ));
 
 const defaultDragState = {
@@ -24,13 +27,14 @@ const defaultDragState = {
 
 export const SelectionContext = React.createContext(null);
 
+const SELECTION_COMPONENT_SHAPE_ID = 'rse-internal-selection-component';
+
 class SelectionLayer extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       ...defaultDragState,
-      selectedShapes: [],
     };
 
     this.wrappedShapes = [];
@@ -38,19 +42,96 @@ class SelectionLayer extends Component {
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.mouseHandler = this.mouseHandler.bind(this);
+    this.onChildFocus = this.onChildFocus.bind(this);
+    this.onChildToggleSelection = this.onChildToggleSelection.bind(this);
     this.onSelectionShapeMountedOrUnmounted = this.onSelectionShapeMountedOrUnmounted.bind(
       this
     );
 
     this.callbacks = {
+      ...props.callbacks,
+      onChildFocus: this.onChildFocus,
+      onChildToggleSelection: this.onChildToggleSelection,
       onShapeMountedOrUnmounted: this.onSelectionShapeMountedOrUnmounted,
-      getPlaneCoordinatesFromEvent: props.getPlaneCoordinatesFromEvent,
-      setMouseHandler: props.setMouseHandler,
     };
   }
 
   componentWillUnmount() {
-    this.wrappedShapes = [];
+    this.wrappedShapes = {};
+  }
+
+  onChildFocus(shapeId, isInternalComponent) {
+    if (isInternalComponent) return;
+
+    const { selectedShapeIds, onSelectionChange } = this.props;
+    if (
+      // We don't want to focus on the shape if it's already
+      // the only focused shape
+      selectedShapeIds.length !== 1 ||
+      selectedShapeIds[0] !== shapeId
+    ) {
+      onSelectionChange([shapeId]);
+    }
+  }
+
+  onChildToggleSelection(clickedShapeId, isInternalComponent, event) {
+    const isClickingSelection = clickedShapeId === SELECTION_COMPONENT_SHAPE_ID;
+    if (isInternalComponent && !isClickingSelection) return;
+
+    let targetShapeId = clickedShapeId;
+
+    // When trying to click shapes behind the selection rectangle, the
+    // selection rectangle absorbs the mouseDown event, so we have to
+    // use the position of the click to retrieve the element under the mouse.
+    if (isClickingSelection) {
+      const elementsUnderMouse = document.elementsFromPoint(
+        event.clientX,
+        event.clientY
+      );
+
+      // Only the child elements (e.g., <rect>) of the wrapShape <g> tags
+      // get picked up by elementsFromPoint, so here we aim to access the
+      // <g> tags (which contain the shapeId) by getting the parentNode
+      // of each element found
+      for (let i = 0; i < elementsUnderMouse.length; i += 1) {
+        const el = elementsUnderMouse[i];
+        if (
+          !el.parentNode ||
+          !el.parentNode.dataset ||
+          !('shapeId' in el.parentNode.dataset) ||
+          el.parentNode.dataset.shapeId === SELECTION_COMPONENT_SHAPE_ID
+        ) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        targetShapeId = el.parentNode.dataset.shapeId;
+        break;
+      }
+    }
+
+    const { selectedShapeIds, onSelectionChange } = this.props;
+    const isAdd = selectedShapeIds.indexOf(targetShapeId) < 0;
+    if (isAdd) {
+      const nextSelectedShapeIds = [...selectedShapeIds, targetShapeId];
+      onSelectionChange(nextSelectedShapeIds);
+
+      if (nextSelectedShapeIds.length >= 2) {
+        // Focus on the group selection rect when it is drawn
+        if (this.selectionEl) {
+          this.selectionEl.forceFocus();
+        } else {
+          setTimeout(() => {
+            if (this.selectionEl) {
+              this.selectionEl.forceFocus();
+            }
+          });
+        }
+      }
+    } else if (selectedShapeIds.length >= 2) {
+      // Only deselect when it is a group selection
+      onSelectionChange(selectedShapeIds.filter(id => id !== targetShapeId));
+    }
   }
 
   onMouseUp() {
@@ -59,20 +140,13 @@ class SelectionLayer extends Component {
     }
 
     const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
-    if (
-      dragStartCoordinates.x === dragCurrentCoordinates.x ||
-      dragStartCoordinates.y === dragCurrentCoordinates.y
-    ) {
-      this.setState(defaultDragState);
-      return;
-    }
-
     const selectRect = getRectFromCornerCoordinates(
       dragStartCoordinates,
       dragCurrentCoordinates
     );
-    const selectedShapes = this.wrappedShapes.filter(shape => {
-      const { x, y, width, height } = shape.props;
+    const selectedShapeIds = Object.keys(this.wrappedShapes).filter(shapeId => {
+      const { x, y, width, height } = this.wrappedShapes[shapeId].props;
+
       return (
         x + width > selectRect.x &&
         x < selectRect.x + selectRect.width &&
@@ -81,7 +155,15 @@ class SelectionLayer extends Component {
       );
     });
 
-    this.setState({ ...defaultDragState, selectedShapes });
+    this.setState(defaultDragState);
+    this.props.onSelectionChange(selectedShapeIds);
+    if (selectedShapeIds.length >= 2 && this.selectionEl) {
+      // Focus on the group selection rect when it is first drawn
+      this.selectionEl.forceFocus();
+    } else if (selectedShapeIds.length === 1) {
+      // In the event that a single shape is selected, give native focus to it as well
+      this.wrappedShapes[selectedShapeIds[0]].forceFocus();
+    }
   }
 
   onMouseMove(event) {
@@ -95,18 +177,24 @@ class SelectionLayer extends Component {
   }
 
   onSelectionShapeMountedOrUnmounted(instance, didMount) {
+    const {
+      onShapeMountedOrUnmounted,
+      selectedShapeIds,
+      onSelectionChange,
+    } = this.props;
+
     // Call the original callback
-    this.props.onShapeMountedOrUnmounted(instance, didMount);
+    onShapeMountedOrUnmounted(instance, didMount);
 
     if (didMount) {
-      this.wrappedShapes = [...this.wrappedShapes, instance];
+      this.wrappedShapes[instance.props.shapeId] = instance;
     } else {
-      this.wrappedShapes = this.wrappedShapes.filter(s => s !== instance);
+      delete this.wrappedShapes[instance.props.shapeId];
     }
 
     // Clear the selection when shapes are being added or removed
-    if (this.state.selectedShapes.length > 0) {
-      this.setState({ selectedShapes: [] });
+    if (selectedShapeIds.length > 0) {
+      onSelectionChange([]);
     }
   }
 
@@ -122,7 +210,9 @@ class SelectionLayer extends Component {
     const {
       children,
       getPlaneCoordinatesFromEvent,
+      onSelectionChange,
       scale,
+      selectedShapeIds,
       SelectionComponent,
       SelectionDrawComponent,
       setMouseHandler,
@@ -133,17 +223,7 @@ class SelectionLayer extends Component {
       dragCurrentCoordinates,
       dragStartCoordinates,
       isMouseDown,
-      selectedShapes,
     } = this.state;
-
-    const selectionX = Math.min(...selectedShapes.map(s => s.props.x));
-    const selectionWidth =
-      Math.max(...selectedShapes.map(s => s.props.x + s.props.width)) -
-      selectionX;
-    const selectionY = Math.min(...selectedShapes.map(s => s.props.y));
-    const selectionHeight =
-      Math.max(...selectedShapes.map(s => s.props.y + s.props.height)) -
-      selectionY;
 
     const draggedRect = isMouseDown
       ? getRectFromCornerCoordinates(
@@ -151,6 +231,10 @@ class SelectionLayer extends Component {
           dragCurrentCoordinates
         )
       : null;
+
+    const selectedShapes = selectedShapeIds
+      .map(shapeId => this.wrappedShapes[shapeId])
+      .filter(Boolean);
 
     let extra = null;
     if (isMouseDown) {
@@ -166,12 +250,30 @@ class SelectionLayer extends Component {
           y={draggedRect.y}
         />
       );
-    } else if (selectedShapes.length > 0) {
+    } else if (selectedShapes.length >= 2) {
+      const selectionX = Math.min(...selectedShapes.map(s => s.props.x));
+      const selectionWidth =
+        Math.max(...selectedShapes.map(s => s.props.x + s.props.width)) -
+        selectionX;
+      const selectionY = Math.min(...selectedShapes.map(s => s.props.y));
+      const selectionHeight =
+        Math.max(...selectedShapes.map(s => s.props.y + s.props.height)) -
+        selectionY;
+
       extra = (
         <SelectionComponent
-          shapeId="rse-internal-selection-component"
+          shapeId={SELECTION_COMPONENT_SHAPE_ID}
           height={selectionHeight}
           isInternalComponent
+          ref={el => {
+            this.selectionEl = el;
+          }}
+          onDelete={event => {
+            selectedShapes.forEach(shape => {
+              shape.props.onDelete(event, shape.props);
+            });
+          }}
+          onChange={(...args) => {}}
           scale={scale}
           width={selectionWidth}
           x={selectionX}
@@ -194,8 +296,8 @@ class SelectionLayer extends Component {
               dragStartCoordinates: startCoordinates,
               dragCurrentCoordinates: startCoordinates,
               isMouseDown: true,
-              selectedShapes: [],
             });
+            onSelectionChange([]);
           }}
         />
         <CallbacksContext.Provider value={this.callbacks}>
@@ -210,13 +312,21 @@ class SelectionLayer extends Component {
 }
 
 SelectionLayer.propTypes = {
+  callbacks: PropTypes.shape({}).isRequired,
   children: PropTypes.node,
   getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
   onSelectionChange: PropTypes.func.isRequired,
   onShapeMountedOrUnmounted: PropTypes.func.isRequired,
   scale: PropTypes.number.isRequired,
-  SelectionComponent: PropTypes.func,
-  SelectionDrawComponent: PropTypes.func,
+  selectedShapeIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  SelectionComponent: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({}),
+  ]),
+  SelectionDrawComponent: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({}),
+  ]),
   setMouseHandler: PropTypes.func.isRequired,
   vectorHeight: PropTypes.number.isRequired,
   vectorWidth: PropTypes.number.isRequired,

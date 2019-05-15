@@ -170,7 +170,10 @@ class DrawLayer extends Component {
 DrawLayer.propTypes = {
   constrainMove: PropTypes.func,
   constrainResize: PropTypes.func,
-  DrawPreviewComponent: PropTypes.func,
+  DrawPreviewComponent: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({}),
+  ]),
   getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
   onAddShape: PropTypes.func.isRequired,
   scale: PropTypes.number.isRequired,
