@@ -10,6 +10,7 @@ const exampleShapeProps = {
   y: 20,
   height: 100,
   width: 300,
+  shapeId: 'a',
 };
 
 // Note: this is extremely important to the performance of the component

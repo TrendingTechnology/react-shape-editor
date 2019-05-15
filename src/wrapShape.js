@@ -272,8 +272,9 @@ function wrapShape(WrappedComponent) {
       } = this.props;
       const {
         // props extracted here are still passed to the child
-        scale,
         disabled,
+        scale,
+        shapeId,
       } = this.props;
       const {
         active,
@@ -378,6 +379,7 @@ function wrapShape(WrappedComponent) {
 
       return (
         <g
+          data-shape-id={shapeId}
           className="rse-shape-wrapper"
           transform={`translate(${sides.left},${sides.top})`}
           style={{
