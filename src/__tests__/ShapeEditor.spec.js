@@ -3,6 +3,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 import { withProfiler } from 'jest-react-profiler';
 import ShapeEditor from '../ShapeEditor';
+import SelectionLayer from '../SelectionLayer';
 import wrapShape from '../wrapShape';
 
 const exampleShapeProps = {
@@ -22,6 +23,7 @@ test('shapes are not re-rendered when their siblings change', () => {
   );
 
   const ShapeEditorProfiled = withProfiler(ShapeEditor);
+  const SelectionLayerProfiled = withProfiler(SelectionLayer);
   const InnerComponentProfiled1 = withProfiler(InnerComponent);
   const InnerComponentProfiled2 = withProfiler(InnerComponent);
   const Shape1 = wrapShape(InnerComponentProfiled1);
@@ -50,6 +52,38 @@ test('shapes are not re-rendered when their siblings change', () => {
   // We want to make sure that InnerComponentProfiled1 didn't get re-rendered
   // even though nothing in its props was changed.
   expect(ShapeEditorProfiled).toHaveCommittedTimes(1);
+  expect(InnerComponentProfiled1).toHaveCommittedTimes(0); // Important
+  expect(InnerComponentProfiled2).toHaveCommittedTimes(1);
+
+  // Do it again, but this time wrapped in a selection layer
+  const wrapper2 = mount(
+    React.createElement((extraProps = {}) => (
+      <ShapeEditorProfiled>
+        <SelectionLayerProfiled
+          onSelectionChange={() => {}}
+          selectedShapeIds={[]}
+        >
+          <Shape1 {...exampleShapeProps} />
+          <Shape2 {...exampleShapeProps} {...extraProps} />
+        </SelectionLayerProfiled>
+      </ShapeEditorProfiled>
+    ))
+  );
+
+  // Check that each component's render function was called just once
+  expect(ShapeEditorProfiled).toHaveCommittedTimes(1);
+  expect(SelectionLayerProfiled).toHaveCommittedTimes(1);
+  expect(InnerComponentProfiled1).toHaveCommittedTimes(1);
+  expect(InnerComponentProfiled2).toHaveCommittedTimes(1);
+
+  // Triggering a re-render of InnerComponentProfiled2
+  wrapper2.setProps({ width: 200 });
+
+  // These check the number of extra commits since the last check
+  // We want to make sure that InnerComponentProfiled1 didn't get re-rendered
+  // even though nothing in its props was changed.
+  expect(ShapeEditorProfiled).toHaveCommittedTimes(1);
+  expect(SelectionLayerProfiled).toHaveCommittedTimes(1);
   expect(InnerComponentProfiled1).toHaveCommittedTimes(0); // Important
   expect(InnerComponentProfiled2).toHaveCommittedTimes(1);
 });
