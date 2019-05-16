@@ -70,7 +70,6 @@ test('shapes are not re-rendered when their siblings change', () => {
     ))
   );
 
-  // Check that each component's render function was called just once
   expect(ShapeEditorProfiled).toHaveCommittedTimes(1);
   expect(SelectionLayerProfiled).toHaveCommittedTimes(1);
   expect(InnerComponentProfiled1).toHaveCommittedTimes(1);
@@ -79,9 +78,6 @@ test('shapes are not re-rendered when their siblings change', () => {
   // Triggering a re-render of InnerComponentProfiled2
   wrapper2.setProps({ width: 200 });
 
-  // These check the number of extra commits since the last check
-  // We want to make sure that InnerComponentProfiled1 didn't get re-rendered
-  // even though nothing in its props was changed.
   expect(ShapeEditorProfiled).toHaveCommittedTimes(1);
   expect(SelectionLayerProfiled).toHaveCommittedTimes(1);
   expect(InnerComponentProfiled1).toHaveCommittedTimes(0); // Important
