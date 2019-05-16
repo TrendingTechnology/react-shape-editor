@@ -211,6 +211,7 @@ class SelectionLayer extends Component {
       children,
       getPlaneCoordinatesFromEvent,
       onSelectionChange,
+      onDelete,
       scale,
       selectedShapeIds,
       SelectionComponent,
@@ -269,9 +270,7 @@ class SelectionLayer extends Component {
             this.selectionEl = el;
           }}
           onDelete={event => {
-            selectedShapes.forEach(shape => {
-              shape.props.onDelete(event, shape.props);
-            });
+            onDelete(event, selectedShapes.map(shape => shape.props));
           }}
           onChange={(...args) => {}}
           scale={scale}
@@ -315,6 +314,7 @@ SelectionLayer.propTypes = {
   callbacks: PropTypes.shape({}).isRequired,
   children: PropTypes.node,
   getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
+  onDelete: PropTypes.func,
   onSelectionChange: PropTypes.func.isRequired,
   onShapeMountedOrUnmounted: PropTypes.func.isRequired,
   scale: PropTypes.number.isRequired,
@@ -334,6 +334,7 @@ SelectionLayer.propTypes = {
 
 SelectionLayer.defaultProps = {
   children: null,
+  onDelete: () => {},
   SelectionComponent: DefaultSelectionComponent,
   SelectionDrawComponent: DefaultSelectionDrawComponent,
 };

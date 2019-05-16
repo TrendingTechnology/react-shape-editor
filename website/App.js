@@ -178,6 +178,20 @@ class App extends Component {
               onSelectionChange={ids =>
                 this.setState({ selectedShapeIds: ids })
               }
+              onDelete={(event, selectedShapesProps) => {
+                this.setState(state => ({
+                  items: selectedShapesProps
+                    .map(p => p.shapeIndex)
+                    // Delete the indices in reverse so as not to shift the
+                    // other array elements and screw up the array indices
+                    .sort()
+                    .reverse()
+                    .reduce(
+                      (acc, shapeIndex) => arrayReplace(acc, shapeIndex, []),
+                      state.items
+                    ),
+                }));
+              }}
             >
               {items.map((item, index) => {
                 const { id, width, height, x, y, ...otherProps } = item;
