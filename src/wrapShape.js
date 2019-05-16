@@ -63,12 +63,20 @@ function wrapShape(WrappedComponent) {
       if (this.state.isDragToMove) {
         const coords = this.getParentCoordinatesForMove(event);
         if (coords) {
+          const { width, height } = this.props;
+          const right = coords.x + width;
+          const bottom = coords.y + height;
+
           this.setState({
             dragCurrentCoordinates: coords,
-            dragStartCoordinates: {
-              x: coords.x + this.props.width,
-              y: coords.y + this.props.height,
-            },
+            dragStartCoordinates: { x: right, y: bottom },
+          });
+
+          this.props.onIntermediateChange({
+            x: coords.x,
+            y: coords.y,
+            width,
+            height,
           });
         }
       } else {
@@ -77,6 +85,13 @@ function wrapShape(WrappedComponent) {
           this.setState({
             dragCurrentCoordinates: coords,
           });
+
+          this.props.onIntermediateChange(
+            getRectFromCornerCoordinates(
+              coords,
+              this.state.dragStartCoordinates
+            )
+          );
         }
       }
     }
@@ -126,6 +141,26 @@ function wrapShape(WrappedComponent) {
       } else if (event.type === 'mouseup') {
         this.onMouseUp(event);
       }
+    }
+
+    simulateTransform(nextRect) {
+      cancelAnimationFrame(this.simulatedTransform);
+
+      if (!nextRect) {
+        this.setState(defaultDragState);
+        return;
+      }
+
+      this.simulatedTransform = window.requestAnimationFrame(() => {
+        this.setState(() => ({
+          isMouseDown: true,
+          dragStartCoordinates: { x: nextRect.x, y: nextRect.y },
+          dragCurrentCoordinates: {
+            x: nextRect.x + nextRect.width,
+            y: nextRect.y + nextRect.height,
+          },
+        }));
+      });
     }
 
     getParentCoordinatesForMove(event) {
@@ -507,6 +542,7 @@ function wrapShape(WrappedComponent) {
     onDelete: PropTypes.func,
     onFocus: PropTypes.func,
     onKeyDown: PropTypes.func,
+    onIntermediateChange: PropTypes.func,
     onShapeMountedOrUnmounted: PropTypes.func.isRequired,
     ResizeHandleComponent: PropTypes.func,
     scale: PropTypes.number.isRequired,
@@ -532,6 +568,7 @@ function wrapShape(WrappedComponent) {
     onChildToggleSelection: () => {},
     onDelete: () => {},
     onFocus: () => {},
+    onIntermediateChange: () => {},
     onKeyDown: () => {},
     ResizeHandleComponent: DefaultResizeHandleComponent,
     wrapperProps: {},

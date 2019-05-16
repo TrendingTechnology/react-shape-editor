@@ -29,6 +29,70 @@ export const SelectionContext = React.createContext(null);
 
 const SELECTION_COMPONENT_SHAPE_ID = 'rse-internal-selection-component';
 
+const getNextRectOfSelectionChild = (
+  selectionStartRect,
+  selectionEndRect,
+  childRect
+) => {
+  const scaleX =
+    selectionStartRect.width !== 0
+      ? selectionEndRect.width / selectionStartRect.width
+      : 0;
+  const scaleY =
+    selectionStartRect.height !== 0
+      ? selectionEndRect.height / selectionStartRect.height
+      : 0;
+
+  return {
+    x: selectionEndRect.x + (childRect.x - selectionStartRect.x) * scaleX,
+    y: selectionEndRect.y + (childRect.y - selectionStartRect.y) * scaleY,
+    width: scaleX !== 0 ? childRect.width * scaleX : selectionEndRect.width,
+    height: scaleY !== 0 ? childRect.height * scaleY : selectionEndRect.height,
+  };
+};
+
+const getNextRectOfSelectionChildConstrained = (
+  selectionStartRect,
+  selectionEndRect,
+  childRect,
+  constrainMove,
+  constrainResize
+) => {
+  const {
+    x: adjustedX,
+    y: adjustedY,
+    width: adjustedWidth,
+    height: adjustedHeight,
+  } = getNextRectOfSelectionChild(
+    selectionStartRect,
+    selectionEndRect,
+    childRect
+  );
+
+  const { x, y } = constrainMove({
+    originalX: childRect.x,
+    originalY: childRect.y,
+    x: adjustedX,
+    y: adjustedY,
+    width: adjustedWidth,
+    height: adjustedHeight,
+  });
+
+  const { x: right, y: bottom } = constrainResize({
+    originalMovingCorner: {
+      x: x + childRect.width,
+      y: y + childRect.height,
+    },
+    startCorner: { x, y },
+    movingCorner: {
+      x: x + adjustedWidth,
+      y: y + adjustedHeight,
+    },
+    lockedDimension: null,
+  });
+  return { x, y, width: right - x, height: bottom - y };
+};
+
 class SelectionLayer extends Component {
   constructor(props) {
     super(props);
@@ -210,8 +274,10 @@ class SelectionLayer extends Component {
     const {
       children,
       getPlaneCoordinatesFromEvent,
-      onSelectionChange,
+      keyboardTransformMultiplier,
+      onChange,
       onDelete,
+      onSelectionChange,
       scale,
       selectedShapeIds,
       SelectionComponent,
@@ -260,25 +326,90 @@ class SelectionLayer extends Component {
       const selectionHeight =
         Math.max(...selectedShapes.map(s => s.props.y + s.props.height)) -
         selectionY;
-
+      const selectionRect = this.lastSelectionRect || {
+        x: selectionX,
+        y: selectionY,
+        height: selectionHeight,
+        width: selectionWidth,
+      };
       extra = (
         <SelectionComponent
           shapeId={SELECTION_COMPONENT_SHAPE_ID}
-          height={selectionHeight}
           isInternalComponent
           ref={el => {
             this.selectionEl = el;
           }}
+          keyboardTransformMultiplier={keyboardTransformMultiplier}
+          onIntermediateChange={intermediateRect => {
+            selectedShapes.forEach(shape => {
+              const {
+                constrainMove,
+                constrainResize,
+                x,
+                y,
+                width,
+                height,
+              } = shape.props;
+
+              const tempRect = getNextRectOfSelectionChildConstrained(
+                selectionRect,
+                intermediateRect,
+                { x, y, width, height },
+                constrainMove,
+                constrainResize
+              );
+              shape.simulateTransform(tempRect);
+            });
+          }}
           onDelete={event => {
             onDelete(event, selectedShapes.map(shape => shape.props));
           }}
-          onChange={(...args) => {}}
+          onChange={nextSelectionRect => {
+            const nextRects = selectedShapes.map(shape => {
+              const {
+                constrainMove,
+                constrainResize,
+                x,
+                y,
+                width,
+                height,
+              } = shape.props;
+
+              return getNextRectOfSelectionChildConstrained(
+                selectionRect,
+                nextSelectionRect,
+                { x, y, width, height },
+                constrainMove,
+                constrainResize
+              );
+            });
+
+            // Restore the shapes back to their original positions
+            selectedShapes.forEach(shape => {
+              shape.simulateTransform(null);
+            });
+
+            onChange(nextRects, selectedShapes.map(shape => shape.props));
+
+            // The next render will not have the updated rects for each shape
+            // until it is done rendering, so we force a second update. We
+            // could require that the library user enter all the shape rects
+            // as a prop to avoid this, but for now, this is the most
+            // expedient solution.
+            setTimeout(() => this.forceUpdate());
+            this.lastSelectionRect = nextSelectionRect;
+          }}
           scale={scale}
-          width={selectionWidth}
-          x={selectionX}
-          y={selectionY}
+          height={selectionRect.height}
+          width={selectionRect.width}
+          x={selectionRect.x}
+          y={selectionRect.y}
         />
       );
+
+      // Remove the lastSelectionRect, used once after an onChange call to
+      // prevent a flash of the old selection rectangle position
+      this.lastSelectionRect = null;
     }
 
     return (
@@ -314,6 +445,8 @@ SelectionLayer.propTypes = {
   callbacks: PropTypes.shape({}).isRequired,
   children: PropTypes.node,
   getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
+  keyboardTransformMultiplier: PropTypes.number,
+  onChange: PropTypes.func,
   onDelete: PropTypes.func,
   onSelectionChange: PropTypes.func.isRequired,
   onShapeMountedOrUnmounted: PropTypes.func.isRequired,
@@ -334,6 +467,8 @@ SelectionLayer.propTypes = {
 
 SelectionLayer.defaultProps = {
   children: null,
+  keyboardTransformMultiplier: 1,
+  onChange: () => {},
   onDelete: () => {},
   SelectionComponent: DefaultSelectionComponent,
   SelectionDrawComponent: DefaultSelectionDrawComponent,

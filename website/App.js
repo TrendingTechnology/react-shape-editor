@@ -6,7 +6,7 @@ import bgImage from './blank.png';
 // if (process.env.NODE_ENV !== 'production') {
 //   const { whyDidYouUpdate } = require('why-did-you-update');
 //   whyDidYouUpdate(React, {
-//     // include: [/^WrappedSh/],
+//     // include: [/^wrapShape\(/],
 //   });
 // }
 
@@ -37,6 +37,7 @@ class App extends Component {
       selectedShapeIds: [],
       vectorWidth: 0,
       vectorHeight: 0,
+      backgroundMode: 'select',
     };
 
     this.constrainMove = this.constrainMove.bind(this);
@@ -87,6 +88,7 @@ class App extends Component {
         scale: Math.max(MIN_SCALE, Math.min(MAX_SCALE, state.scale * ratio)),
       }));
     const {
+      backgroundMode,
       items,
       scale,
       selectedShapeIds,
@@ -98,6 +100,34 @@ class App extends Component {
       acc[id] = true;
       return acc;
     }, {});
+
+    const shapes = items.map((item, index) => {
+      const { id, width, height, x, y, ...otherProps } = item;
+      return (
+        <RectShape
+          key={id}
+          constrainMove={this.constrainMove}
+          constrainResize={this.constrainResize}
+          height={height}
+          keyboardTransformMultiplier={5}
+          onChange={this.onShapeChange}
+          onDelete={this.onShapeDelete}
+          shapeId={id}
+          shapeIndex={index}
+          width={width}
+          {...(backgroundMode === 'select'
+            ? {
+                active: !!selectedIdDict[id],
+                isInSelectionGroup:
+                  selectedShapeIds.length >= 2 && !!selectedIdDict[id],
+              }
+            : {})}
+          x={x}
+          y={y}
+          {...otherProps}
+        />
+      );
+    });
 
     return (
       <div className="wrapper">
@@ -132,6 +162,32 @@ class App extends Component {
           <button type="button" onClick={() => changeScale(Math.sqrt(2))}>
             +
           </button>
+          &nbsp;&nbsp;&nbsp;
+          <label htmlFor="mode-draw">
+            <input
+              id="mode-draw"
+              type="radio"
+              value="draw"
+              onChange={event =>
+                this.setState({ backgroundMode: event.target.value })
+              }
+              checked={backgroundMode === 'draw'}
+            />{' '}
+            Draw
+          </label>
+          &nbsp;&nbsp;&nbsp;
+          <label htmlFor="mode-select">
+            <input
+              id="mode-select"
+              type="radio"
+              value="select"
+              onChange={event =>
+                this.setState({ backgroundMode: event.target.value })
+              }
+              checked={backgroundMode === 'select'}
+            />{' '}
+            Select
+          </label>
         </div>
         <div
           style={{
@@ -157,67 +213,61 @@ class App extends Component {
               }}
             />
 
-            {/*
-            <DrawLayer
-              constrainMove={this.constrainMove}
-              constrainResize={this.constrainResize}
-              onAddShape={({ x, y, width, height }) => {
-                this.setState(state => ({
-                  items: [
-                    ...state.items,
-                    { id: `id${iterator}`, x, y, width, height },
-                  ],
-                }));
-                iterator += 1;
-              }}
-            />
-            */}
+            {backgroundMode === 'draw' && (
+              <DrawLayer
+                constrainMove={this.constrainMove}
+                constrainResize={this.constrainResize}
+                onAddShape={({ x, y, width, height }) => {
+                  this.setState(state => ({
+                    items: [
+                      ...state.items,
+                      { id: `id${iterator}`, x, y, width, height },
+                    ],
+                  }));
+                  iterator += 1;
+                }}
+              />
+            )}
 
-            <SelectionLayer
-              selectedShapeIds={selectedShapeIds}
-              onSelectionChange={ids =>
-                this.setState({ selectedShapeIds: ids })
-              }
-              onDelete={(event, selectedShapesProps) => {
-                this.setState(state => ({
-                  items: selectedShapesProps
-                    .map(p => p.shapeIndex)
-                    // Delete the indices in reverse so as not to shift the
-                    // other array elements and screw up the array indices
-                    .sort()
-                    .reverse()
-                    .reduce(
-                      (acc, shapeIndex) => arrayReplace(acc, shapeIndex, []),
-                      state.items
-                    ),
-                }));
-              }}
-            >
-              {items.map((item, index) => {
-                const { id, width, height, x, y, ...otherProps } = item;
-                return (
-                  <RectShape
-                    key={id}
-                    constrainMove={this.constrainMove}
-                    constrainResize={this.constrainResize}
-                    height={height}
-                    keyboardTransformMultiplier={5}
-                    onChange={this.onShapeChange}
-                    onDelete={this.onShapeDelete}
-                    shapeId={id}
-                    shapeIndex={index}
-                    width={width}
-                    active={!!selectedIdDict[id]}
-                    isInSelectionGroup={
-                      selectedShapeIds.length >= 2 && !!selectedIdDict[id]
-                    }
-                    x={x}
-                    y={y}
-                    {...otherProps}
-                  />
-                );
-              })}
-            </SelectionLayer>
+            {backgroundMode === 'select' ? (
+              <SelectionLayer
+                selectedShapeIds={selectedShapeIds}
+                onSelectionChange={ids =>
+                  this.setState({ selectedShapeIds: ids })
+                }
+                keyboardTransformMultiplier={5}
+                onChange={(newRects, selectedShapesProps) => {
+                  this.setState(state => ({
+                    items: newRects.reduce((acc, newRect, index) => {
+                      const { shapeIndex } = selectedShapesProps[index];
+                      const item = acc[shapeIndex];
+                      return arrayReplace(acc, shapeIndex, {
+                        ...item,
+                        ...newRect,
+                      });
+                    }, state.items),
+                  }));
+                }}
+                onDelete={(event, selectedShapesProps) => {
+                  this.setState(state => ({
+                    items: selectedShapesProps
+                      .map(p => p.shapeIndex)
+                      // Delete the indices in reverse so as not to shift the
+                      // other array elements and screw up the array indices
+                      .sort()
+                      .reverse()
+                      .reduce(
+                        (acc, shapeIndex) => arrayReplace(acc, shapeIndex, []),
+                        state.items
+                      ),
+                  }));
+                }}
+              >
+                {shapes}
+              </SelectionLayer>
+            ) : (
+              shapes
+            )}
           </ShapeEditor>
         </div>
       </div>
