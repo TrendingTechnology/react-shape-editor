@@ -161,12 +161,7 @@ function wrapShape(WrappedComponent) {
       dragInnerOffset = this.state.dragInnerOffset,
       dragLock = this.state.dragLock
     ) {
-      const {
-        constrainResize,
-        width,
-        height,
-        getPlaneCoordinatesFromEvent,
-      } = this.props;
+      const { constrainResize, getPlaneCoordinatesFromEvent } = this.props;
       const { x: rawX, y: rawY } = getPlaneCoordinatesFromEvent(
         event,
         dragInnerOffset
@@ -176,8 +171,6 @@ function wrapShape(WrappedComponent) {
         originalMovingCorner: dragCurrentCoordinates,
         startCorner: dragStartCoordinates,
         movingCorner: { x: rawX, y: rawY },
-        width,
-        height,
         lockedDimension: dragLock,
       });
 
