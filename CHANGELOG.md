@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [2.0.0](https://github.com/fritz-c/react-shape-editor/compare/v1.2.1...v2.0.0) (2019-05-16)
+
+
+### Bug Fixes
+
+* remove incorrect parameter sent to constrainResize ([695a30e](https://github.com/fritz-c/react-shape-editor/commit/695a30e))
+
+
+### Code Refactoring
+
+* require unique shapeId for each shape ([e90014d](https://github.com/fritz-c/react-shape-editor/commit/e90014d))
+
+
+### Features
+
+* enable multiple selections with SelectionLayer ([5679c45](https://github.com/fritz-c/react-shape-editor/commit/5679c45))
+
+
+### BREAKING CHANGES
+
+* the original width and height of the shape are no
+longer provided as callback parameters to constrainResize. They can
+still be derived from the coordinates inside originalMovingCorner
+and startCorner, however.
+* each shape now requires a unique shapeId string
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [1.2.1](https://github.com/fritz-c/react-shape-editor/compare/v1.2.0...v1.2.1) (2019-04-26)
 
 
