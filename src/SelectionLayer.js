@@ -93,6 +93,18 @@ const getNextRectOfSelectionChildConstrained = (
   return { x, y, width: right - x, height: bottom - y };
 };
 
+const getSelectionRect = childRects => {
+  const selectionX = Math.min(...childRects.map(c => c.x));
+  const selectionY = Math.min(...childRects.map(c => c.y));
+
+  return {
+    x: selectionX,
+    y: selectionY,
+    height: Math.max(...childRects.map(c => c.y + c.height)) - selectionY,
+    width: Math.max(...childRects.map(c => c.x + c.width)) - selectionX,
+  };
+};
+
 class SelectionLayer extends Component {
   constructor(props) {
     super(props);
@@ -318,20 +330,9 @@ class SelectionLayer extends Component {
         />
       );
     } else if (selectedShapes.length >= 2) {
-      const selectionX = Math.min(...selectedShapes.map(s => s.props.x));
-      const selectionWidth =
-        Math.max(...selectedShapes.map(s => s.props.x + s.props.width)) -
-        selectionX;
-      const selectionY = Math.min(...selectedShapes.map(s => s.props.y));
-      const selectionHeight =
-        Math.max(...selectedShapes.map(s => s.props.y + s.props.height)) -
-        selectionY;
-      const selectionRect = this.lastSelectionRect || {
-        x: selectionX,
-        y: selectionY,
-        height: selectionHeight,
-        width: selectionWidth,
-      };
+      const selectionRect =
+        this.lastSelectionRect ||
+        getSelectionRect(selectedShapes.map(s => s.props));
       extra = (
         <SelectionComponent
           shapeId={SELECTION_COMPONENT_SHAPE_ID}
@@ -392,12 +393,9 @@ class SelectionLayer extends Component {
             onChange(nextRects, selectedShapes.map(shape => shape.props));
 
             // The next render will not have the updated rects for each shape
-            // until it is done rendering, so we force a second update. We
-            // could require that the library user enter all the shape rects
-            // as a prop to avoid this, but for now, this is the most
-            // expedient solution.
-            setTimeout(() => this.forceUpdate());
-            this.lastSelectionRect = nextSelectionRect;
+            // until it is done rendering, so we store the updated selection
+            // rect for a single render.
+            this.lastSelectionRect = getSelectionRect(nextRects);
           }}
           scale={scale}
           height={selectionRect.height}
