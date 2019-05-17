@@ -118,6 +118,8 @@ class ShapeEditor extends Component {
   render() {
     const {
       children,
+      focusOnAdd,
+      focusOnDelete,
       scale,
       vectorHeight,
       vectorWidth,
