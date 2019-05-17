@@ -37,10 +37,10 @@ class ShapeEditor extends Component {
   }
 
   componentDidUpdate() {
-    if (this.justAddedShapes.length > 0) {
+    if (this.justAddedShapes.length > 0 && this.props.focusOnAdd) {
       // Focus on shapes added since the last update
       this.justAddedShapes.slice(-1)[0].forceFocus();
-    } else if (this.lastDeletedRect) {
+    } else if (this.lastDeletedRect && this.props.focusOnDelete) {
       // If something was deleted since the last update, focus on the
       // next closest shape by center coordinates
       const getShapeCenter = shape => ({
@@ -158,6 +158,8 @@ class ShapeEditor extends Component {
 
 ShapeEditor.propTypes = {
   children: PropTypes.node,
+  focusOnAdd: PropTypes.bool,
+  focusOnDelete: PropTypes.bool,
   scale: PropTypes.number,
   style: PropTypes.shape({}),
   vectorHeight: PropTypes.number,
@@ -166,6 +168,8 @@ ShapeEditor.propTypes = {
 
 ShapeEditor.defaultProps = {
   children: null,
+  focusOnAdd: true,
+  focusOnDelete: true,
   scale: 1,
   style: {},
   vectorHeight: 0,
