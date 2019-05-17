@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [2.1.0](https://github.com/fritz-c/react-shape-editor/compare/v2.0.1...v2.1.0) (2019-05-17)
+
+
+### Features
+
+* add props to disable focus-on-add/delete behavior ([0d857fb](https://github.com/fritz-c/react-shape-editor/commit/0d857fb))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [2.0.1](https://github.com/fritz-c/react-shape-editor/compare/v2.0.0...v2.0.1) (2019-05-17)
 
 
