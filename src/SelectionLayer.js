@@ -118,6 +118,7 @@ class SelectionLayer extends Component {
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.mouseHandler = this.mouseHandler.bind(this);
+    this.onChildRectChanged = this.onChildRectChanged.bind(this);
     this.onChildFocus = this.onChildFocus.bind(this);
     this.onChildToggleSelection = this.onChildToggleSelection.bind(this);
     this.onSelectionShapeMountedOrUnmounted = this.onSelectionShapeMountedOrUnmounted.bind(
@@ -126,6 +127,7 @@ class SelectionLayer extends Component {
 
     this.callbacks = {
       ...props.callbacks,
+      onChildRectChanged: this.onChildRectChanged,
       onChildFocus: this.onChildFocus,
       onChildToggleSelection: this.onChildToggleSelection,
       onShapeMountedOrUnmounted: this.onSelectionShapeMountedOrUnmounted,
@@ -134,6 +136,22 @@ class SelectionLayer extends Component {
 
   componentWillUnmount() {
     this.wrappedShapes = {};
+  }
+
+  componentDidUpdate() {
+    if (this.selectedChildrenDidChange) {
+      this.selectedChildrenDidChange = false;
+
+      // Only force update if there is a selection visible.
+      // Otherwise, no change
+      if (
+        this.props.selectedShapeIds.filter(
+          shapeId => this.wrappedShapes[shapeId]
+        ).length >= 2
+      ) {
+        this.forceUpdate();
+      }
+    }
   }
 
   onChildFocus(shapeId, isInternalComponent) {
@@ -147,6 +165,18 @@ class SelectionLayer extends Component {
       selectedShapeIds[0] !== shapeId
     ) {
       onSelectionChange([shapeId]);
+    }
+  }
+
+  onChildRectChanged(shapeId, isInternalComponent) {
+    if (isInternalComponent) return;
+
+    const { selectedShapeIds } = this.props;
+    if (
+      !this.selectedChildrenDidChange &&
+      selectedShapeIds.indexOf(shapeId) >= 0
+    ) {
+      this.selectedChildrenDidChange = true;
     }
   }
 
@@ -253,10 +283,17 @@ class SelectionLayer extends Component {
   }
 
   onSelectionShapeMountedOrUnmounted(instance, didMount) {
-    const { onShapeMountedOrUnmounted } = this.props;
+    const { onShapeMountedOrUnmounted, selectedShapeIds } = this.props;
 
     // Call the original callback
     onShapeMountedOrUnmounted(instance, didMount);
+
+    if (
+      !this.selectedChildrenDidChange &&
+      selectedShapeIds.indexOf(instance.props.shapeId) >= 0
+    ) {
+      this.selectedChildrenDidChange = true;
+    }
 
     if (didMount) {
       this.wrappedShapes[instance.props.shapeId] = instance;
@@ -322,9 +359,7 @@ class SelectionLayer extends Component {
         />
       );
     } else if (selectedShapes.length >= 2) {
-      const selectionRect =
-        this.lastSelectionRect ||
-        getSelectionRect(selectedShapes.map(s => s.props));
+      const selectionRect = getSelectionRect(selectedShapes.map(s => s.props));
       extra = (
         <SelectionComponent
           keyboardTransformMultiplier={keyboardTransformMultiplier}
@@ -384,11 +419,6 @@ class SelectionLayer extends Component {
             });
 
             onChange(nextRects, selectedShapes.map(shape => shape.props));
-
-            // The next render will not have the updated rects for each shape
-            // until it is done rendering, so we store the updated selection
-            // rect for a single render.
-            this.lastSelectionRect = getSelectionRect(nextRects);
           }}
           scale={scale}
           height={selectionRect.height}
@@ -397,10 +427,6 @@ class SelectionLayer extends Component {
           y={selectionRect.y}
         />
       );
-
-      // Remove the lastSelectionRect, used once after an onChange call to
-      // prevent a flash of the old selection rectangle position
-      this.lastSelectionRect = null;
     }
 
     return (

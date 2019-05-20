@@ -47,6 +47,20 @@ function wrapShape(WrappedComponent) {
       }
     }
 
+    componentDidUpdate(prevProps) {
+      if (
+        this.props.height !== prevProps.height ||
+        this.props.width !== prevProps.width ||
+        this.props.x !== prevProps.x ||
+        this.props.y !== prevProps.y
+      ) {
+        this.props.onChildRectChanged(
+          this.props.shapeId,
+          this.props.isInternalComponent
+        );
+      }
+    }
+
     componentWillUnmount() {
       this.unmounted = true;
 
@@ -537,6 +551,7 @@ function wrapShape(WrappedComponent) {
     keyboardTransformMultiplier: PropTypes.number,
     onBlur: PropTypes.func,
     onChange: PropTypes.func,
+    onChildRectChanged: PropTypes.func,
     onChildFocus: PropTypes.func,
     onChildToggleSelection: PropTypes.func,
     onDelete: PropTypes.func,
@@ -564,6 +579,7 @@ function wrapShape(WrappedComponent) {
     keyboardTransformMultiplier: 1,
     onBlur: () => {},
     onChange: () => {},
+    onChildRectChanged: () => {},
     onChildFocus: () => {},
     onChildToggleSelection: () => {},
     onDelete: () => {},
