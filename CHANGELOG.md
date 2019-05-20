@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.2](https://github.com/fritz-c/react-shape-editor/compare/v2.1.1...v2.1.2) (2019-05-20)
+
+
+### Bug Fixes
+
+* remove unnecessary focus clearing on shape add/delete ([389c28e](https://github.com/fritz-c/react-shape-editor/commit/389c28e))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [2.1.1](https://github.com/fritz-c/react-shape-editor/compare/v2.1.0...v2.1.1) (2019-05-17)
 
 
