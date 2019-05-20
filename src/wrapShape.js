@@ -126,25 +126,32 @@ function wrapShape(WrappedComponent) {
         const { x: nextX, y: nextY } = dragCurrentCoordinates;
 
         this.setState(defaultDragState, () => {
-          onChange(
-            {
-              x: nextX,
-              y: nextY,
-              width: this.props.width,
-              height: this.props.height,
-            },
-            this.props
-          );
+          if (nextX !== this.props.x || nextY !== this.props.y) {
+            onChange(
+              {
+                x: nextX,
+                y: nextY,
+                width: this.props.width,
+                height: this.props.height,
+              },
+              this.props
+            );
+          }
         });
       } else {
         this.setState(defaultDragState, () => {
-          onChange(
-            getRectFromCornerCoordinates(
-              dragStartCoordinates,
-              dragCurrentCoordinates
-            ),
-            this.props
+          const nextRect = getRectFromCornerCoordinates(
+            dragStartCoordinates,
+            dragCurrentCoordinates
           );
+          if (
+            nextRect.height !== this.props.height ||
+            nextRect.width !== this.props.width ||
+            nextRect.x !== this.props.x ||
+            nextRect.y !== this.props.y
+          ) {
+            onChange(nextRect, this.props);
+          }
         });
       }
     }
