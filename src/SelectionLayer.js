@@ -253,11 +253,7 @@ class SelectionLayer extends Component {
   }
 
   onSelectionShapeMountedOrUnmounted(instance, didMount) {
-    const {
-      onShapeMountedOrUnmounted,
-      selectedShapeIds,
-      onSelectionChange,
-    } = this.props;
+    const { onShapeMountedOrUnmounted } = this.props;
 
     // Call the original callback
     onShapeMountedOrUnmounted(instance, didMount);
@@ -266,11 +262,6 @@ class SelectionLayer extends Component {
       this.wrappedShapes[instance.props.shapeId] = instance;
     } else {
       delete this.wrappedShapes[instance.props.shapeId];
-    }
-
-    // Clear the selection when shapes are being added or removed
-    if (selectedShapeIds.length > 0) {
-      onSelectionChange([]);
     }
   }
 
