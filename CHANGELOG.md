@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.1](https://github.com/fritz-c/react-shape-editor/compare/v2.2.0...v2.2.1) (2019-05-20)
+
+
+### Bug Fixes
+
+* properly update selection on child creation/update/deletion ([6bfa94f](https://github.com/fritz-c/react-shape-editor/commit/6bfa94f))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 # [2.2.0](https://github.com/fritz-c/react-shape-editor/compare/v2.1.2...v2.2.0) (2019-05-20)
 
 
