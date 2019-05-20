@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [2.2.0](https://github.com/fritz-c/react-shape-editor/compare/v2.1.2...v2.2.0) (2019-05-20)
+
+
+### Features
+
+* add prop to customize SelectionComponent's props ([2bf3a62](https://github.com/fritz-c/react-shape-editor/commit/2bf3a62))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [2.1.2](https://github.com/fritz-c/react-shape-editor/compare/v2.1.1...v2.1.2) (2019-05-20)
 
 
