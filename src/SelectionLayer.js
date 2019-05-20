@@ -284,6 +284,7 @@ class SelectionLayer extends Component {
       scale,
       selectedShapeIds,
       SelectionComponent,
+      selectionComponentProps,
       SelectionDrawComponent,
       setMouseHandler,
       vectorHeight,
@@ -326,12 +327,13 @@ class SelectionLayer extends Component {
         getSelectionRect(selectedShapes.map(s => s.props));
       extra = (
         <SelectionComponent
+          keyboardTransformMultiplier={keyboardTransformMultiplier}
+          {...selectionComponentProps}
           shapeId={SELECTION_COMPONENT_SHAPE_ID}
           isInternalComponent
           ref={el => {
             this.selectionEl = el;
           }}
-          keyboardTransformMultiplier={keyboardTransformMultiplier}
           onIntermediateChange={intermediateRect => {
             selectedShapes.forEach(shape => {
               const {
@@ -445,6 +447,7 @@ SelectionLayer.propTypes = {
     PropTypes.func,
     PropTypes.shape({}),
   ]),
+  selectionComponentProps: PropTypes.shape({}),
   SelectionDrawComponent: PropTypes.oneOfType([
     PropTypes.func,
     PropTypes.shape({}),
@@ -460,6 +463,7 @@ SelectionLayer.defaultProps = {
   onChange: () => {},
   onDelete: () => {},
   SelectionComponent: DefaultSelectionComponent,
+  selectionComponentProps: {},
   SelectionDrawComponent: DefaultSelectionDrawComponent,
 };
 
