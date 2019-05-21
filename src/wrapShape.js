@@ -509,6 +509,7 @@ function wrapShape(WrappedComponent) {
                 : this.keyboardMove(...moveArgs);
             switch (event.key) {
               case 'Backspace':
+              case 'Delete':
                 onDelete(event, this.props);
                 break;
               case 'ArrowUp':
