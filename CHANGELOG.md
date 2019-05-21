@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [2.3.0](https://github.com/fritz-c/react-shape-editor/compare/v2.2.2...v2.3.0) (2019-05-21)
+
+
+### Features
+
+* make the delete key also work for deletion ([10652c5](https://github.com/fritz-c/react-shape-editor/commit/10652c5))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [2.2.2](https://github.com/fritz-c/react-shape-editor/compare/v2.2.1...v2.2.2) (2019-05-20)
 
 
