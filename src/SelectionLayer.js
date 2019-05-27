@@ -113,7 +113,7 @@ class SelectionLayer extends Component {
       ...defaultDragState,
     };
 
-    this.wrappedShapes = [];
+    this.wrappedShapes = {};
 
     this.onMouseUp = this.onMouseUp.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
@@ -245,6 +245,11 @@ class SelectionLayer extends Component {
       return;
     }
 
+    if (!this.selectionIsLargeEnough()) {
+      this.setState(defaultDragState);
+      return;
+    }
+
     const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
     const selectRect = getRectFromCornerCoordinates(
       dragStartCoordinates,
@@ -310,6 +315,20 @@ class SelectionLayer extends Component {
     }
   }
 
+  selectionIsLargeEnough() {
+    const { minimumDistanceForSelection } = this.props;
+    const { dragStartCoordinates, dragCurrentCoordinates } = this.state;
+    const selectionRect = getRectFromCornerCoordinates(
+      dragStartCoordinates,
+      dragCurrentCoordinates
+    );
+
+    return (
+      selectionRect.width >= minimumDistanceForSelection ||
+      selectionRect.height >= minimumDistanceForSelection
+    );
+  }
+
   render() {
     const {
       children,
@@ -346,18 +365,20 @@ class SelectionLayer extends Component {
 
     let extra = null;
     if (isMouseDown) {
-      extra = (
-        <SelectionDrawComponent
-          shapeId="rse-internal-selection-draw-component"
-          disabled
-          height={draggedRect.height}
-          isInternalComponent
-          scale={scale}
-          width={draggedRect.width}
-          x={draggedRect.x}
-          y={draggedRect.y}
-        />
-      );
+      if (this.selectionIsLargeEnough()) {
+        extra = (
+          <SelectionDrawComponent
+            shapeId="rse-internal-selection-draw-component"
+            disabled
+            height={draggedRect.height}
+            isInternalComponent
+            scale={scale}
+            width={draggedRect.width}
+            x={draggedRect.x}
+            y={draggedRect.y}
+          />
+        );
+      }
     } else if (selectedShapes.length >= 2) {
       const selectionRect = getSelectionRect(selectedShapes.map(s => s.props));
       extra = (
@@ -463,6 +484,7 @@ SelectionLayer.propTypes = {
   children: PropTypes.node,
   getPlaneCoordinatesFromEvent: PropTypes.func.isRequired,
   keyboardTransformMultiplier: PropTypes.number,
+  minimumDistanceForSelection: PropTypes.number,
   onChange: PropTypes.func,
   onDelete: PropTypes.func,
   onSelectionChange: PropTypes.func.isRequired,
@@ -486,6 +508,7 @@ SelectionLayer.propTypes = {
 SelectionLayer.defaultProps = {
   children: null,
   keyboardTransformMultiplier: 1,
+  minimumDistanceForSelection: 15,
   onChange: () => {},
   onDelete: () => {},
   SelectionComponent: DefaultSelectionComponent,
