@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [2.4.0](https://github.com/fritz-c/react-shape-editor/compare/v2.3.0...v2.4.0) (2019-05-28)
+
+
+### Features
+
+* use minimumDistanceForSelection to avoid extra selection on click ([3e842f7](https://github.com/fritz-c/react-shape-editor/commit/3e842f7))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 # [2.3.0](https://github.com/fritz-c/react-shape-editor/compare/v2.2.2...v2.3.0) (2019-05-21)
 
 
