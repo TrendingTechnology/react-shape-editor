@@ -52,11 +52,3 @@ workflows:
           filters: # required since `website-deploy` has tag filters AND requires `test`
             tags:
               only: /.*/
-      - website-deploy:
-          requires:
-            - test
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
