@@ -2,11 +2,7 @@
 
 Simple shape editor component
 
-Todo
-
-- Focus on last available node after deleting
-- Grid preview for demo
-- Restore focus logic to IE11: https://allyjs.io/tutorials/focusing-in-svg.html#focusing-svg-elements
+[![CircleCI](https://circleci.com/gh/fritz-c/react-shape-editor.svg?style=svg)](https://circleci.com/gh/fritz-c/react-shape-editor)
 
 ## Usage
 
