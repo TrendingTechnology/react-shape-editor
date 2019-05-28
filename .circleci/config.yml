@@ -6,53 +6,53 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-        key: dependency-cache-{{ checksum "package.json" }}
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
-        name: npm-install
-        command: npm ci
+          name: npm-install
+          command: npm ci
       - save_cache:
-        key: dependency-cache-{{ checksum "package.json" }}
-        paths:
-          - ./node_modules
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
   test:
     docker:
       - image: circleci/node:10.15
     steps:
       - run:
-        name: lint
-        command: npm run lint
+          name: lint
+          command: npm run lint
       - run:
-        name: test
-        command: npm test
+          name: test
+          command: npm test
   website-deploy:
     docker:
       - image: circleci/node:10.15
     steps:
       - run:
-        name: build
-        command: npm run build:website
+          name: build
+          command: npm run build:website
       - run:
-        name: deploy
-        command: npm run deploy
+          name: deploy
+          command: npm run deploy
 workflows:
   version: 2
   build_and_test:
     jobs:
       - build:
-        filters:
-          tags:
-            only: /.*/
+          filters:
+            tags:
+              only: /.*/
       - test:
-        requires:
-          - build
-        filters: # required since `website-deploy` has tag filters AND requires `test`
-          tags:
-            only: /.*/
+          requires:
+            - build
+          filters: # required since `website-deploy` has tag filters AND requires `test`
+            tags:
+              only: /.*/
       - website-deploy:
-        requires:
-          - test
-        filters:
-          tags:
-            only: /^v.*/
-          branches:
-            ignore: /.*/
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
