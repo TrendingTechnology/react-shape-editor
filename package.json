@@ -12,13 +12,13 @@
     "clean:website": "rimraf build",
     "lint": "eslint src",
     "prettier": "prettier --write \"{src,example/src,stories}/**/*.{js,css,md}\"",
-    "prepublishOnly": "npm run lint && npm run test && npm run clean && npm run build",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "prepublishOnly": "npm run lint && npm run test:once && npm run clean && npm run build",
+    "test": "jest --watch",
+    "test:once": "jest",
     "storybook": "start-storybook -p ${PORT:-3001} -h 0.0.0.0",
     "deploy": "gh-pages -d build",
     "prepush-check-prettier": "npm run prettier -- --list-different || (echo 'ERROR: Some files were updated by prettier. Please commit them and continue.'; exit 1)",
-    "prepush": "npm-run-all -p prepush-check-prettier test lint"
+    "prepush": "npm-run-all -p prepush-check-prettier lint"
   },
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",

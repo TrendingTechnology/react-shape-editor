@@ -12,9 +12,7 @@ jobs:
       - checkout
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
-      - run:
-          name: npm-install
-          command: npm ci
+      - run: npm ci
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
@@ -27,22 +25,18 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/repo
-      - run:
-          name: lint
-          command: npm run lint
-      - run:
-          name: test
-          command: npm test
+      - run: npm run lint
+      - run: npm run test:once
   website-deploy:
     <<: *defaults
     steps:
       - attach_workspace:
           at: ~/repo
       - run:
-          name: build
+          name: build site
           command: npm run build:website
       - run:
-          name: deploy
+          name: deploy site
           command: npm run deploy
 workflows:
   version: 2
