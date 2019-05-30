@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unused-prop-types */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -26,25 +28,15 @@ const DefaultResizeHandleComponent = ({
 );
 
 DefaultResizeHandleComponent.propTypes = {
-  active: PropTypes.bool,
-  cursor: PropTypes.string,
-  isInSelectionGroup: PropTypes.bool,
-  onMouseDown: PropTypes.func,
-  recommendedSize: PropTypes.number,
-  scale: PropTypes.number,
-  x: PropTypes.number,
-  y: PropTypes.number,
-};
-
-DefaultResizeHandleComponent.defaultProps = {
-  active: false,
-  cursor: undefined,
-  isInSelectionGroup: false,
-  onMouseDown: () => {},
-  recommendedSize: 0,
-  scale: 1,
-  x: 0,
-  y: 0,
+  active: PropTypes.bool.isRequired,
+  nativeActive: PropTypes.bool.isRequired,
+  cursor: PropTypes.string.isRequired,
+  isInSelectionGroup: PropTypes.bool.isRequired,
+  onMouseDown: PropTypes.func.isRequired,
+  recommendedSize: PropTypes.number.isRequired,
+  scale: PropTypes.number.isRequired,
+  x: PropTypes.number.isRequired,
+  y: PropTypes.number.isRequired,
 };
 
 export default DefaultResizeHandleComponent;
