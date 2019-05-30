@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.1](https://github.com/fritz-c/react-shape-editor/compare/v2.4.0...v2.4.1) (2019-05-30)
+
+
+### Bug Fixes
+
+* make shift-click work on IE 11 ([be5b463](https://github.com/fritz-c/react-shape-editor/commit/be5b463))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 # [2.4.0](https://github.com/fritz-c/react-shape-editor/compare/v2.3.0...v2.4.0) (2019-05-28)
 
 
