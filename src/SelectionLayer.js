@@ -9,11 +9,11 @@ const DefaultSelectionDrawComponent = wrapShape(({ height, width }) => (
   <rect fill="rgba(140,179,255,0.3)" height={height} width={width} />
 ));
 
-const DefaultSelectionComponent = wrapShape(({ height, width }) => (
+const DefaultSelectionComponent = wrapShape(({ height, scale, width }) => (
   <rect
     fill="transparent"
     stroke="rgba(140,179,255,1)"
-    strokeWidth={2}
+    strokeWidth={2 / scale}
     height={height}
     width={width}
   />
