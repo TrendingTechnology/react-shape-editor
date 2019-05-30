@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [2.5.0](https://github.com/fritz-c/react-shape-editor/compare/v2.4.2...v2.5.0) (2019-05-30)
+
+
+### Features
+
+* add nativeActive prop to wrapped shapes and resize handles ([20bec0f](https://github.com/fritz-c/react-shape-editor/commit/20bec0f))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [2.4.2](https://github.com/fritz-c/react-shape-editor/compare/v2.4.1...v2.4.2) (2019-05-30)
 
 
