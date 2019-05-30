@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.2](https://github.com/fritz-c/react-shape-editor/compare/v2.4.1...v2.4.2) (2019-05-30)
+
+
+### Bug Fixes
+
+* another IE11 fix, this time for el.dataset handling ([ad8721f](https://github.com/fritz-c/react-shape-editor/commit/ad8721f))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [2.4.1](https://github.com/fritz-c/react-shape-editor/compare/v2.4.0...v2.4.1) (2019-05-30)
 
 
