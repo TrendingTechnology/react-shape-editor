@@ -374,9 +374,9 @@ function wrapShape(WrappedComponent) {
       const RECOMMENDED_CORNER_SIZE = 10;
       const cornerSize = RECOMMENDED_CORNER_SIZE / scale;
       const hasSpaciousVertical =
-        (sides.bottom - sides.top) * scale > cornerSize * 2;
+        (sides.bottom - sides.top) * scale > RECOMMENDED_CORNER_SIZE * 2;
       const hasSpaciousHorizontal =
-        (sides.right - sides.left) * scale > cornerSize * 2;
+        (sides.right - sides.left) * scale > RECOMMENDED_CORNER_SIZE * 2;
       // Generate drag handles
       const handles = [
         hasSpaciousVertical && ['w', 'nw', 'ew-resize', 0, height / 2, 'y'],
