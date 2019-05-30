@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.5.1](https://github.com/fritz-c/react-shape-editor/compare/v2.5.0...v2.5.1) (2019-05-30)
+
+
+### Bug Fixes
+
+* keep default group selection outline a consistent width ([034f286](https://github.com/fritz-c/react-shape-editor/commit/034f286))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 # [2.5.0](https://github.com/fritz-c/react-shape-editor/compare/v2.4.2...v2.5.0) (2019-05-30)
 
 
