@@ -190,10 +190,12 @@ class SelectionLayer extends Component {
     // selection rectangle absorbs the mouseDown event, so we have to
     // use the position of the click to retrieve the element under the mouse.
     if (isClickingSelection) {
-      const elementsUnderMouse = document.elementsFromPoint(
-        event.clientX,
-        event.clientY
-      );
+      const elementsUnderMouse =
+        typeof document.msElementsFromPoint === 'function'
+          ? Array.from(
+              document.msElementsFromPoint(event.clientX, event.clientY)
+            )
+          : document.elementsFromPoint(event.clientX, event.clientY);
 
       // Only the child elements (e.g., <rect>) of the wrapShape <g> tags
       // get picked up by elementsFromPoint, so here we aim to access the
