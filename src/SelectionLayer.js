@@ -192,7 +192,7 @@ class SelectionLayer extends Component {
     if (isClickingSelection) {
       const elementsUnderMouse =
         typeof document.msElementsFromPoint === 'function'
-          ? Array.from(
+          ? Array.prototype.slice.call(
               document.msElementsFromPoint(event.clientX, event.clientY)
             )
           : document.elementsFromPoint(event.clientX, event.clientY);
@@ -202,18 +202,29 @@ class SelectionLayer extends Component {
       // <g> tags (which contain the shapeId) by getting the parentNode
       // of each element found
       for (let i = 0; i < elementsUnderMouse.length; i += 1) {
-        const el = elementsUnderMouse[i];
+        const { parentNode } = elementsUnderMouse[i];
+        if (!parentNode) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        // IE11-compatible way to get dataset info from SVG elements
+        let shapeId = null;
+        if (parentNode.dataset) {
+          ({ shapeId } = parentNode.dataset);
+        } else if (typeof parentNode.getAttribute === 'function') {
+          shapeId = parentNode.getAttribute('data-shape-id');
+        }
+
         if (
-          !el.parentNode ||
-          !el.parentNode.dataset ||
-          !('shapeId' in el.parentNode.dataset) ||
-          el.parentNode.dataset.shapeId === SELECTION_COMPONENT_SHAPE_ID
+          typeof shapeId !== 'string' ||
+          shapeId === SELECTION_COMPONENT_SHAPE_ID
         ) {
           // eslint-disable-next-line no-continue
           continue;
         }
 
-        targetShapeId = el.parentNode.dataset.shapeId;
+        targetShapeId = shapeId;
         break;
       }
     }
