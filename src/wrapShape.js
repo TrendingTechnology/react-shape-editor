@@ -401,6 +401,7 @@ function wrapShape(WrappedComponent) {
             <ResizeHandleComponent
               key={handleName}
               active={active}
+              nativeActive={nativeActive}
               cursor={cursor}
               isInSelectionGroup={isInSelectionGroup}
               onMouseDown={event => {
@@ -537,6 +538,7 @@ function wrapShape(WrappedComponent) {
           <WrappedComponent
             isBeingChanged={isMouseDown}
             active={active}
+            nativeActive={nativeActive}
             {...otherProps}
             width={width}
             height={height}
