@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.5.2](https://github.com/fritz-c/react-shape-editor/compare/v2.5.1...v2.5.2) (2019-05-30)
+
+
+### Bug Fixes
+
+* make handles disappear at the right level of crampedness ([323aff9](https://github.com/fritz-c/react-shape-editor/commit/323aff9))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [2.5.1](https://github.com/fritz-c/react-shape-editor/compare/v2.5.0...v2.5.1) (2019-05-30)
 
 
