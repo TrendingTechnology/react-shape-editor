@@ -6,11 +6,7 @@ import {
   defaultConstrainResize,
 } from './utils';
 import withContext from './withContext';
-import wrapShape from './wrapShape';
-
-const DefaultDrawComponent = wrapShape(({ height, width }) => (
-  <rect fill="rgba(0,0,255,0.5)" height={height} width={width} />
-));
+import DefaultDrawPreviewComponent from './DefaultDrawPreviewComponent';
 
 const defaultDragState = {
   dragStartCoordinates: null,
@@ -185,7 +181,7 @@ DrawLayer.propTypes = {
 DrawLayer.defaultProps = {
   constrainMove: defaultConstrainMove,
   constrainResize: defaultConstrainResize,
-  DrawPreviewComponent: DefaultDrawComponent,
+  DrawPreviewComponent: DefaultDrawPreviewComponent,
 };
 
 export default withContext(DrawLayer);
