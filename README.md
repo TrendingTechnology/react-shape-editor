@@ -4,7 +4,7 @@ Simple shape editor component
 
 [![shape-editor](https://user-images.githubusercontent.com/4413963/59026651-eb403580-8891-11e9-9fea-33843b6386c0.gif)](https://fritz-c.github.io/react-shape-editor/)
 
-[![npm version](https://badge.fury.io/js/react-shape-editor.svg)](https://badge.fury.io/js/react-shape-editor) [![CircleCI](https://circleci.com/gh/fritz-c/react-shape-editor.svg?style=svg)](https://circleci.com/gh/fritz-c/react-shape-editor)
+[![npm version](https://badge.fury.io/js/react-shape-editor.svg)](https://www.npmjs.com/package/react-shape-editor) [![CircleCI](https://circleci.com/gh/fritz-c/react-shape-editor.svg?style=svg)](https://circleci.com/gh/fritz-c/react-shape-editor)
 
 ## Installation
 ```sh
