@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { ShapeEditor, ImageLayer, DrawLayer, SelectionLayer } from '../src';
 import RectShape from './RectShape';
+import OvalShape from './OvalShape';
+import StarShape from './StarShape';
 import bgImage from './blank.png';
 
 // if (process.env.NODE_ENV !== 'production') {
@@ -101,10 +103,13 @@ class App extends Component {
       return acc;
     }, {});
 
+    const shapeChoices = [RectShape, OvalShape, StarShape];
+
     const shapes = items.map((item, index) => {
       const { id, width, height, x, y, ...otherProps } = item;
+      const Shape = shapeChoices[index % shapeChoices.length];
       return (
-        <RectShape
+        <Shape
           key={id}
           constrainMove={this.constrainMove}
           constrainResize={this.constrainResize}
@@ -217,6 +222,9 @@ class App extends Component {
               <DrawLayer
                 constrainMove={this.constrainMove}
                 constrainResize={this.constrainResize}
+                DrawPreviewComponent={
+                  shapeChoices[items.length % shapeChoices.length]
+                }
                 onAddShape={({ x, y, width, height }) => {
                   this.setState(state => ({
                     items: [
