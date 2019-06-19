@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [2.6.0](https://github.com/fritz-c/react-shape-editor/compare/v2.5.2...v2.6.0) (2019-06-19)
+
+
+### Features
+
+* pass handle name prop to resize handle component ([1c2fbde](https://github.com/fritz-c/react-shape-editor/commit/1c2fbde))
+
+
+
+# Change Log
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
 ## [2.5.2](https://github.com/fritz-c/react-shape-editor/compare/v2.5.1...v2.5.2) (2019-05-30)
 
 
