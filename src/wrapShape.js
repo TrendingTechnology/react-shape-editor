@@ -408,6 +408,7 @@ function wrapShape(WrappedComponent) {
               nativeActive={nativeActive}
               cursor={cursor}
               isInSelectionGroup={isInSelectionGroup}
+              name={handleName}
               onMouseDown={event => {
                 event.stopPropagation();
 
