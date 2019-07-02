@@ -1,6 +1,16 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+### [2.6.1](https://github.com/fritz-c/react-shape-editor/compare/v2.6.0...v2.6.1) (2019-07-02)
+
+
+### Bug Fixes
+
+* handle null return value from msElementsFromPoint ([b7a67ad](https://github.com/fritz-c/react-shape-editor/commit/b7a67ad))
+* make individual shape focus work on Safari ([8f515e5](https://github.com/fritz-c/react-shape-editor/commit/8f515e5))
+
+
 
 # [2.6.0](https://github.com/fritz-c/react-shape-editor/compare/v2.5.2...v2.6.0) (2019-06-19)
 
