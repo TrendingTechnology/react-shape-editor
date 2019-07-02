@@ -180,7 +180,9 @@ class SelectionLayer extends Component {
       const elementsUnderMouse =
         typeof document.msElementsFromPoint === 'function'
           ? Array.prototype.slice.call(
-              document.msElementsFromPoint(event.clientX, event.clientY)
+              // msElementsFromPoint returns null when there are no elements
+              // found
+              document.msElementsFromPoint(event.clientX, event.clientY) || []
             )
           : document.elementsFromPoint(event.clientX, event.clientY);
 
