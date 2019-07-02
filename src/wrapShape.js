@@ -297,6 +297,11 @@ function wrapShape(WrappedComponent) {
     }
 
     forceFocus() {
+      // If it's already focused, return early
+      if (this.state.nativeActive) {
+        return;
+      }
+
       // IE11 doesn't have the focus method
       if (this.wrapperEl.focus) {
         this.wrapperEl.focus();
@@ -449,7 +454,7 @@ function wrapShape(WrappedComponent) {
           style={{
             cursor: 'move',
             outline: 'none',
-            pointerEvents: disabled ? 'none' : 'auto',
+            ...(disabled ? { pointerEvents: 'none' } : {}),
           }}
           ref={el => {
             this.wrapperEl = el;
@@ -457,6 +462,7 @@ function wrapShape(WrappedComponent) {
           focusable={!disabled ? true : undefined} // IE11 support
           tabIndex={!disabled ? 0 : undefined}
           onFocus={event => {
+            this.gotFocusAfterClick = true;
             onChildFocus(shapeId, isInternalComponent);
             this.setState({ nativeActive: true });
             onFocus(event, this.props);
@@ -467,6 +473,18 @@ function wrapShape(WrappedComponent) {
           }}
           onMouseDown={event => {
             event.stopPropagation();
+
+            // Focusing support for Safari
+            // Safari (12) does not currently allow focusing via mouse events,
+            // even on elements with tabIndex="0" (tabbing with the keyboard
+            // does work, however). This logic waits to see if focus was called
+            // following a click, and forces the focused state if necessary.
+            this.gotFocusAfterClick = false;
+            setTimeout(() => {
+              if (!this.unmounted && !this.gotFocusAfterClick) {
+                this.forceFocus();
+              }
+            });
 
             if (event.shiftKey) {
               onChildToggleSelection(shapeId, isInternalComponent, event);
